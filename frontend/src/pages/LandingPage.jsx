@@ -19,7 +19,7 @@ const LandingPage = ({ user, logout }) => {
                         <div className="flex items-center gap-2">
                             <img src="/logo.png" alt="Vijitha Granites" className="h-10 w-10 rounded-lg object-cover" />
                             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-700 to-gray-900">
-                                Vijitha Granites
+                                Heritage Slabs
                             </span>
                         </div>
 
@@ -275,7 +275,7 @@ const LandingPage = ({ user, logout }) => {
 
                     <div className="text-center mt-12">
                         <Link
-                            to="/home"
+                            to="/login"
                             className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg"
                         >
                             Browse All Products
@@ -414,7 +414,7 @@ const LandingPage = ({ user, logout }) => {
                         <div className="col-span-2 md:col-span-1">
                             <div className="flex items-center gap-2 mb-4">
                                 <img src="/logo.png" alt="Vijitha Granites" className="h-10 w-10 rounded-lg object-cover" />
-                                <span className="text-xl font-bold">Vijitha Granites</span>
+                                <span className="text-xl font-bold">Heritage Slabs</span>
                             </div>
                             <p className="text-gray-400 text-sm">
                                 Your trusted partner in premium natural stone solutions since 1995.
@@ -452,7 +452,7 @@ const LandingPage = ({ user, logout }) => {
                     </div>
 
                     <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 text-sm">
-                        <p>&copy; {new Date().getFullYear()} Vijitha Granites. All rights reserved.</p>
+                        <p>&copy; {new Date().getFullYear()} Heritage Slabs. All rights reserved.</p>
                     </div>
                 </div>
             </footer>
