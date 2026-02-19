@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/avatars/**").permitAll()
+                        .requestMatchers("/product-images/**").permitAll()
 
                         // --- ADDED PRODUCT ROUTES ---
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").permitAll()
