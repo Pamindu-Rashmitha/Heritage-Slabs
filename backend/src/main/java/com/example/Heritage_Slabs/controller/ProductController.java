@@ -62,4 +62,17 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
+
+    // Add this inside your ProductController class
+
+    // Upload an image for a specific product
+    @PostMapping("/{id}/image")
+    public ResponseEntity<ProductResponseDTO> uploadProductImage(
+            @PathVariable Long id,
+            @org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+
+        ProductResponseDTO updatedProduct = productService.uploadProductImage(id, file);
+        return ResponseEntity.ok(updatedProduct);
+    }
+
 }
