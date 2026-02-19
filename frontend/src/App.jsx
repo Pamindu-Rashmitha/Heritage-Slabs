@@ -7,6 +7,7 @@ import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Profile from './pages/admin/Profile';
 import LandingPage from './pages/LandingPage';
+import ProductManagement from './pages/admin/ProductManagement';
 
 function App() {
     return (
@@ -22,11 +23,14 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/users" element={<UserManagement />} />
                         <Route path="/profile" element={<Profile />} />
+
+                        <Route path="/products" element={<ProductManagement />} />
                     </Routes>
                 </div>
             </Router>
         </AuthProvider>
     );
 }
+
 
 export default App;
