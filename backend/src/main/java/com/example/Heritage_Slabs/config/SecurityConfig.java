@@ -37,7 +37,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                // 1. Tell Spring Security to use the CORS configuration below
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -46,10 +45,9 @@ public class SecurityConfig {
                         .requestMatchers("/avatars/**").permitAll()
                         .requestMatchers("/product-images/**").permitAll()
 
-                        // --- ADDED PRODUCT ROUTES ---
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers("/api/products/**").hasAuthority("ROLE_ADMIN")
-                        // ----------------------------
+                        // --- FIX: Added explicit "/api/products" to catch the root URL ---
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
+                        .requestMatchers("/api/products", "/api/products/**").hasAuthority("ROLE_ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -58,20 +56,18 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 2. Define the exact CORS rules directly inside the security config
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow the React frontend
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        // Allow these HTTP methods
+
+        // --- FIXED CORS ORIGINS (Allowing both Vite ports just to be safe) ---
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // Allow these headers (Crucial for our JWT Authorization header!)
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Apply these rules to all our /api/ endpoints
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
