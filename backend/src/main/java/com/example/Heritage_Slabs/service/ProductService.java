@@ -5,9 +5,12 @@ import com.example.Heritage_Slabs.dto.response.ProductResponseDTO;
 import com.example.Heritage_Slabs.model.Product;
 import com.example.Heritage_Slabs.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.nio.file.*;
+import java.util.UUID;
 
 @Service
 public class ProductService {
@@ -49,6 +52,39 @@ public class ProductService {
         updateProductFields(product, requestDTO);
         Product updatedProduct = productRepository.save(product);
         return mapToResponseDTO(updatedProduct);
+    }
+
+    // Add this method inside your ProductService class
+
+    public ProductResponseDTO uploadProductImage(Long id, org.springframework.web.multipart.MultipartFile file) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+
+        try {
+            // 1. Create the directory if it doesn't exist
+            String uploadDir = "uploads/products/";
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir);
+            if (!java.nio.file.Files.exists(uploadPath)) {
+                java.nio.file.Files.createDirectories(uploadPath);
+            }
+
+            // 2. Generate a unique file name to avoid overwriting (e.g., 123e4567-e89b...-moon-white.jpg)
+            String fileName = java.util.UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            java.nio.file.Path filePath = uploadPath.resolve(fileName);
+
+            // 3. Save the file to the local file system
+            java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            // 4. Save the accessible URL to the database
+            String fileUrl = "/product-images/" + fileName;
+            product.setTextureUrl(fileUrl);
+            Product updatedProduct = productRepository.save(product);
+
+            return mapToResponseDTO(updatedProduct);
+
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Could not store file. Error: " + e.getMessage());
+        }
     }
 
     // 5. Delete a Product
