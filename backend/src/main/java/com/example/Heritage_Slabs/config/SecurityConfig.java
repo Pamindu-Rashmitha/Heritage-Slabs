@@ -43,7 +43,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/avatars/**").permitAll() // <-- ADD THIS NEW LINE!
+                        .requestMatchers("/avatars/**").permitAll()
+
+                        // --- ADDED PRODUCT ROUTES ---
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers("/api/products/**").hasAuthority("ROLE_ADMIN")
+                        // ----------------------------
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
