@@ -8,7 +8,10 @@ import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Profile from './pages/admin/Profile';
 import LandingPage from './pages/LandingPage';
+
+
 import ProductManagement from './pages/admin/ProductManagement';
+import ProductCatalog from './pages/ProductCatalog';
 
 // Wrapper to pass user/logout from AuthContext as props to LandingPage
 function LandingPageWrapper() {
@@ -27,15 +30,18 @@ function App() {
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
 
-                        {/* Protected Admin Routes */}
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/users" element={<UserManagement />} />
-                        <Route path="/profile" element={<Profile />} />
+                            <Route path="/catalog" element={<ProductCatalog />} />
 
-                        <Route path="/products" element={<ProductManagement />} />
-                    </Routes>
-                </div>
-            </Router>
+                            {/* Protected Admin Routes */}
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/users" element={<UserManagement />} />
+                            <Route path="/profile" element={<Profile />} />
+
+                            <Route path="/products" element={<ProductManagement />} />
+                        </Routes>
+                    </div>
+                </Router>
+            </CartProvider> {/* <-- THIS TAG WAS ADDED TO FIX THE CRASH */}
         </AuthProvider>
     );
 }
