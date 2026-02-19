@@ -1,11 +1,12 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/admin/Dashboard'; // Added import
+import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Profile from './pages/admin/Profile';
+import LandingPage from './pages/LandingPage';
 
 function App() {
     return (
@@ -13,7 +14,7 @@ function App() {
             <Router>
                 <div className="min-h-screen bg-gray-100">
                     <Routes>
-                        <Route path="/" element={<Navigate to="/login" />} />
+                        <Route path="/" element={<LandingPage />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
 

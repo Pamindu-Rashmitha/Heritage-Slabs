@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
@@ -7,11 +7,18 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    // Bring in the login function from our AuthContext
-    const { login } = useContext(AuthContext);
+    // Bring in the login function and user state from our AuthContext
+    const { login, user } = useContext(AuthContext);
 
     // Bring in the navigate function to change pages after login
     const navigate = useNavigate();
+
+    // Navigate to dashboard once user state is actually set by React
+    useEffect(() => {
+        if (user) {
+            navigate('/dashboard');
+        }
+    }, [user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // Prevents the page from refreshing
@@ -20,9 +27,7 @@ export default function Login() {
         try {
             // Call the login function from context
             await login(email, password);
-
-            // If successful, redirect to a dashboard (we will build this next)
-            navigate('/dashboard');
+            // Navigation is handled by the useEffect above after user state updates
         } catch (err) {
             // If the backend sends a 400/401 error, catch it and show the user
             setError('Invalid email or password. Please try again.');
