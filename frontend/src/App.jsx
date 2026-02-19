@@ -27,18 +27,18 @@ function App() {
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
 
-                        {/* Protected Admin Routes */}
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/users" element={<UserManagement />} />
-                        <Route path="/profile" element={<Profile />} />
+                            {/* Protected Admin Routes */}
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/users" element={<UserManagement />} />
+                            <Route path="/profile" element={<Profile />} />
 
-                        <Route path="/products" element={<ProductManagement />} />
-                    </Routes>
-                </div>
-            </Router>
+                            <Route path="/products" element={<ProductManagement />} />
+                        </Routes>
+                    </div>
+                </Router>
+            </CartProvider> {/* <-- THIS TAG WAS ADDED TO FIX THE CRASH */}
         </AuthProvider>
     );
 }
-
 
 export default App;
