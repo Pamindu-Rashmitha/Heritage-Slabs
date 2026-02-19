@@ -8,7 +8,10 @@ import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Profile from './pages/admin/Profile';
 import LandingPage from './pages/LandingPage';
+
+
 import ProductManagement from './pages/admin/ProductManagement';
+import ProductCatalog from './pages/ProductCatalog';
 
 // Wrapper to pass user/logout from AuthContext as props to LandingPage
 function LandingPageWrapper() {
@@ -27,6 +30,8 @@ function App() {
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
 
+                            <Route path="/catalog" element={<ProductCatalog />} />
+
                             {/* Protected Admin Routes */}
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/users" element={<UserManagement />} />
@@ -40,5 +45,6 @@ function App() {
         </AuthProvider>
     );
 }
+
 
 export default App;
