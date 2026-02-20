@@ -61,7 +61,7 @@ const ProductCatalog = () => {
                                     <p className="text-gray-600 text-sm mb-4">Dimensions: {product.dimensions}</p>
 
                                     <div className="flex items-center justify-between mt-4">
-                                        <span className="text-2xl font-bold text-gray-900">${product.price.toFixed(2)} <span className="text-sm font-normal text-gray-500">/ sqft</span></span>
+                                        <span className="text-2xl font-bold text-gray-900">{product.price.toFixed(2)} LKR<span className="text-sm font-normal text-gray-500">/ sqft</span></span>
 
                                         {/* AI Placeholder Button - Your teammates will use this! */}
                                         <button className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-2 px-4 rounded shadow flex items-center gap-2">

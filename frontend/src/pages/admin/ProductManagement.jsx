@@ -111,45 +111,45 @@ const ProductManagement = () => {
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="min-w-full leading-normal">
                         <thead>
-                        <tr className="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
-                            <th className="py-3 px-6">Image</th>
-                            <th className="py-3 px-6">Name & Dimensions</th>
-                            <th className="py-3 px-6">Price / SqFt</th>
-                            <th className="py-3 px-6">Stock Level</th>
-                            <th className="py-3 px-6 text-center">Actions</th>
-                        </tr>
+                            <tr className="bg-gray-100 text-left text-gray-600 uppercase text-sm leading-normal">
+                                <th className="py-3 px-6">Image</th>
+                                <th className="py-3 px-6">Name & Dimensions</th>
+                                <th className="py-3 px-6">Price / SqFt</th>
+                                <th className="py-3 px-6">Stock Level</th>
+                                <th className="py-3 px-6 text-center">Actions</th>
+                            </tr>
                         </thead>
                         <tbody className="text-gray-600 text-sm font-light">
-                        {products.length === 0 ? (
-                            <tr><td colSpan="5" className="py-6 text-center">No products found. Add one!</td></tr>
-                        ) : (
-                            products.map((product) => (
-                                <tr key={product.id} className="border-b border-gray-200 hover:bg-gray-50">
-                                    <td className="py-3 px-6 text-left whitespace-nowrap">
-                                        {product.textureUrl ? (
-                                            <img src={`http://localhost:8080${product.textureUrl}`} alt={product.name} className="w-16 h-16 object-cover rounded shadow-sm" />
-                                        ) : (
-                                            <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No Img</div>
-                                        )}
-                                    </td>
-                                    <td className="py-3 px-6 text-left">
-                                        <div className="font-bold text-gray-800">{product.name}</div>
-                                        <div className="text-xs text-gray-500">{product.dimensions} • Grade: {product.grade}</div>
-                                    </td>
-                                    <td className="py-3 px-6 text-left font-medium">${product.price.toFixed(2)}</td>
-                                    <td className="py-3 px-6 text-left">
-                                        {product.lowStock ? (
-                                            <span className="bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-bold">Low Stock: {product.stockQuantity}</span>
-                                        ) : (
-                                            <span className="bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-bold">In Stock: {product.stockQuantity}</span>
-                                        )}
-                                    </td>
-                                    <td className="py-3 px-6 text-center">
-                                        <button onClick={() => handleDelete(product.id)} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                            {products.length === 0 ? (
+                                <tr><td colSpan="5" className="py-6 text-center">No products found. Add one!</td></tr>
+                            ) : (
+                                products.map((product) => (
+                                    <tr key={product.id} className="border-b border-gray-200 hover:bg-gray-50">
+                                        <td className="py-3 px-6 text-left whitespace-nowrap">
+                                            {product.textureUrl ? (
+                                                <img src={`http://localhost:8080${product.textureUrl}`} alt={product.name} className="w-16 h-16 object-cover rounded shadow-sm" />
+                                            ) : (
+                                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No Img</div>
+                                            )}
+                                        </td>
+                                        <td className="py-3 px-6 text-left">
+                                            <div className="font-bold text-gray-800">{product.name}</div>
+                                            <div className="text-xs text-gray-500">{product.dimensions} • Grade: {product.grade}</div>
+                                        </td>
+                                        <td className="py-3 px-6 text-left font-medium">{product.price.toFixed(2)} LKR</td>
+                                        <td className="py-3 px-6 text-left">
+                                            {product.lowStock ? (
+                                                <span className="bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-bold">Low Stock: {product.stockQuantity}</span>
+                                            ) : (
+                                                <span className="bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-bold">In Stock: {product.stockQuantity}</span>
+                                            )}
+                                        </td>
+                                        <td className="py-3 px-6 text-center">
+                                            <button onClick={() => handleDelete(product.id)} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -167,7 +167,7 @@ const ProductManagement = () => {
                                     <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="w-full border p-2 rounded" placeholder="e.g., Galaxy Black" />
                                 </div>
                                 <div className="col-span-2 sm:col-span-1">
-                                    <label className="block text-sm font-medium mb-1">Price per SqFt ($)</label>
+                                    <label className="block text-sm font-medium mb-1">Price per SqFt (LKR)</label>
                                     <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleInputChange} className="w-full border p-2 rounded" />
                                 </div>
                                 <div className="col-span-2 sm:col-span-1">
