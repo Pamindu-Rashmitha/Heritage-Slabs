@@ -6,10 +6,14 @@ const ProductManagement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // --- NEW STATE FOR MODAL & FORM ---
+    // --- MODAL & FORM STATE ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+
+    // NEW: Tracks if we are editing an existing product
+    const [editingProductId, setEditingProductId] = useState(null);
+
     const [formData, setFormData] = useState({
         name: '',
         price: '',
@@ -48,6 +52,30 @@ const ProductManagement = () => {
         }
     };
 
+    // --- NEW: EDIT FUNCTION ---
+    const handleEdit = (product) => {
+        // Pre-fill the form with the product's current data
+        setFormData({
+            name: product.name,
+            price: product.price,
+            dimensions: product.dimensions,
+            grade: product.grade,
+            stockQuantity: product.stockQuantity,
+            lowStockThreshold: product.lowStockThreshold,
+            description: product.description || ''
+        });
+        setEditingProductId(product.id); // Set the ID so the form knows it's an update
+        setIsModalOpen(true);
+    };
+
+    // Helper function to clean up the form when closing
+    const resetFormAndCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingProductId(null);
+        setSelectedFile(null);
+        setFormData({ name: '', price: '', dimensions: '', grade: 'Premium', stockQuantity: '', lowStockThreshold: 10, description: '' });
+    };
+
     // --- FORM HANDLERS ---
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -62,29 +90,35 @@ const ProductManagement = () => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            // 1. Send text data to create the product
-            const newProductData = {
+            const productDataToSave = {
                 ...formData,
                 price: parseFloat(formData.price),
                 stockQuantity: parseInt(formData.stockQuantity),
                 lowStockThreshold: parseInt(formData.lowStockThreshold)
             };
 
-            const createdProduct = await productService.createProduct(newProductData);
+            let savedProduct;
 
-            // 2. If a file was selected, upload it using the new product's ID
-            if (selectedFile) {
-                await productService.uploadProductImage(createdProduct.id, selectedFile);
+            // CHECK: Are we updating or creating?
+            if (editingProductId) {
+                // 1. UPDATE EXISTING (PUT Request)
+                savedProduct = await productService.updateProduct(editingProductId, productDataToSave);
+            } else {
+                // 2. CREATE NEW (POST Request)
+                savedProduct = await productService.createProduct(productDataToSave);
             }
 
-            // 3. Clean up, close modal, and refresh the table
-            setIsModalOpen(false);
-            setFormData({ name: '', price: '', dimensions: '', grade: 'Premium', stockQuantity: '', lowStockThreshold: 10, description: '' });
-            setSelectedFile(null);
+            // 3. Upload image if a new one was selected
+            if (selectedFile) {
+                await productService.uploadProductImage(savedProduct.id, selectedFile);
+            }
+
+            // 4. Clean up and refresh
+            resetFormAndCloseModal();
             loadProducts();
         } catch (err) {
             console.error(err);
-            alert('Error creating product. Check the console.');
+            alert('Error saving product. Check the console.');
         } finally {
             setIsSubmitting(false);
         }
@@ -96,7 +130,10 @@ const ProductManagement = () => {
                 <h1 className="text-3xl font-bold text-gray-800">Product Management</h1>
                 <button
                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition"
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                        resetFormAndCloseModal(); // Ensure form is clean
+                        setIsModalOpen(true);
+                    }}
                 >
                     + Add New Slab
                 </button>
@@ -104,7 +141,6 @@ const ProductManagement = () => {
 
             {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
-            {/* --- TABLE (Same as before) --- */}
             {loading ? (
                 <p className="text-gray-600">Loading inventory...</p>
             ) : (
@@ -145,7 +181,19 @@ const ProductManagement = () => {
                                         )}
                                     </td>
                                     <td className="py-3 px-6 text-center">
-                                        <button onClick={() => handleDelete(product.id)} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
+                                        {/* ADDED EDIT BUTTON HERE */}
+                                        <button
+                                            onClick={() => handleEdit(product)}
+                                            className="text-blue-500 hover:text-blue-700 font-medium mr-4"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(product.id)}
+                                            className="text-red-500 hover:text-red-700 font-medium"
+                                        >
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))
@@ -155,11 +203,15 @@ const ProductManagement = () => {
                 </div>
             )}
 
-            {/* --- ADD NEW PRODUCT MODAL --- */}
+            {/* --- ADD / EDIT PRODUCT MODAL --- */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 overflow-y-auto max-h-[90vh]">
-                        <h2 className="text-2xl font-bold mb-4">Add Granite Slab</h2>
+                        {/* Dynamic Title based on mode */}
+                        <h2 className="text-2xl font-bold mb-4">
+                            {editingProductId ? 'Edit Granite Slab' : 'Add Granite Slab'}
+                        </h2>
+
                         <form onSubmit={handleSubmit}>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2 sm:col-span-1">
@@ -183,7 +235,7 @@ const ProductManagement = () => {
                                     </select>
                                 </div>
                                 <div className="col-span-2 sm:col-span-1">
-                                    <label className="block text-sm font-medium mb-1">Initial Stock Quantity</label>
+                                    <label className="block text-sm font-medium mb-1">Current Stock Quantity</label>
                                     <input type="number" name="stockQuantity" required value={formData.stockQuantity} onChange={handleInputChange} className="w-full border p-2 rounded" />
                                 </div>
                                 <div className="col-span-2 sm:col-span-1">
@@ -191,17 +243,26 @@ const ProductManagement = () => {
                                     <input type="number" name="lowStockThreshold" required value={formData.lowStockThreshold} onChange={handleInputChange} className="w-full border p-2 rounded" />
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium mb-1">Texture Image (Critical for AI)</label>
-                                    <input type="file" accept="image/*" required onChange={handleFileChange} className="w-full border p-2 rounded" />
+                                    <label className="block text-sm font-medium mb-1">
+                                        Texture Image {editingProductId && '(Leave blank to keep current image)'}
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        // Only require the image if we are adding a brand new slab
+                                        required={!editingProductId}
+                                        onChange={handleFileChange}
+                                        className="w-full border p-2 rounded"
+                                    />
                                 </div>
                             </div>
 
                             <div className="mt-6 flex justify-end gap-3">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300">
+                                <button type="button" onClick={resetFormAndCloseModal} className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300">
                                     Cancel
                                 </button>
                                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 disabled:bg-blue-300">
-                                    {isSubmitting ? 'Saving...' : 'Save Product'}
+                                    {isSubmitting ? 'Saving...' : (editingProductId ? 'Update Product' : 'Save Product')}
                                 </button>
                             </div>
                         </form>
