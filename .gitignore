@@ -1,3 +1,7 @@
 backend/src/main/resources/application.properties
 .DS_Store
 backend/src/main/resources/application.properties
+.idea/Heritage-Slabs.iml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/Heritage-Slabs.iml
+*.iml
