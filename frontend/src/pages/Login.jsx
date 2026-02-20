@@ -16,7 +16,11 @@ export default function Login() {
     // Navigate to dashboard once user state is actually set by React
     useEffect(() => {
         if (user) {
-            navigate('/dashboard');
+            if (user.role === 'ADMIN') {
+                navigate('/dashboard');
+            } else {
+                navigate('/catalog');
+            }
         }
     }, [user, navigate]);
 
