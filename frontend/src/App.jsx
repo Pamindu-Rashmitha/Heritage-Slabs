@@ -19,6 +19,9 @@ function LandingPageWrapper() {
     return <LandingPage user={user} logout={logout} />;
 }
 
+// ... other imports ...
+import AdminRoute from './components/layout/AdminRoute'; // <-- 1. Import it
+
 function App() {
     return (
         <AuthProvider>
@@ -26,25 +29,26 @@ function App() {
                 <Router>
                     <div className="min-h-screen bg-gray-100">
                         <Routes>
+                            {/* --- PUBLIC ROUTES --- */}
                             <Route path="/" element={<LandingPageWrapper />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
-
                             <Route path="/catalog" element={<ProductCatalog />} />
 
-                            {/* Protected Admin Routes */}
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/users" element={<UserManagement />} />
-                            <Route path="/profile" element={<Profile />} />
+                            {/* --- PROTECTED ADMIN ROUTES --- */}
+                            {/* 2. Wrap sensitive routes with <AdminRoute> */}
+                            <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
+                            <Route path="/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
+                            <Route path="/products" element={<AdminRoute><ProductManagement /></AdminRoute>} />
 
-                            <Route path="/products" element={<ProductManagement />} />
+                            {/* Note: If regular users also have a profile, you might want a <ProtectedRoute> instead of <AdminRoute> for this one */}
+                            <Route path="/profile" element={<AdminRoute><Profile /></AdminRoute>} />
                         </Routes>
                     </div>
                 </Router>
-            </CartProvider> {/* <-- THIS TAG WAS ADDED TO FIX THE CRASH */}
+            </CartProvider>
         </AuthProvider>
     );
 }
-
 
 export default App;
