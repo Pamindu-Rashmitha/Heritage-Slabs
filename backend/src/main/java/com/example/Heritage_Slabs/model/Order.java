@@ -26,7 +26,7 @@ public class Order {
     private double totalAmount;
 
     @Column(nullable = false)
-    private String status;
+    private Status status;
 
     @Column(nullable = false)
     private Date date;
