@@ -5,3 +5,4 @@ backend/src/main/resources/application.properties
 .idea/inspectionProfiles/Project_Default.xml
 .idea/Heritage-Slabs.iml
 *.iml
+backend/src/main/resources/application.properties
