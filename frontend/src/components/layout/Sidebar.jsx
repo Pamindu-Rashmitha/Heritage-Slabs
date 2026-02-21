@@ -17,6 +17,15 @@ export default function Sidebar() {
                 <Link to="/products" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Products
                 </Link>
+                <Link to="/suppliers" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800 font-bold border-l-4 border-blue-500 bg-gray-800">
+                    Suppliers
+                </Link>
+                <Link to="/purchase-orders" className="pl-6 py-2 text-sm transition text-gray-400 hover:text-white hover:bg-gray-800">
+                    ↳ Purchase Orders
+                </Link>
+                <Link to="/material-intakes" className="pl-6 py-2 text-sm transition text-gray-400 hover:text-white hover:bg-gray-800 mb-2">
+                    ↳ Material Intakes
+                </Link>
                 <Link to="/vehicles" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Vehicles
                 </Link>
