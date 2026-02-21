@@ -8,17 +8,16 @@ export default function Sidebar() {
                 <h1 className="text-xl font-bold">Heritage Slabs ERP</h1>
             </div>
             <nav className="flex flex-col p-4 space-y-2">
-                <Link to="/dashboard" className="p-3 transition rounded hover:bg-gray-800">
+                <Link to="/dashboard" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Dashboard
                 </Link>
-                {/* This is the page you will build later for the User Directory! */}
-                <Link to="/users" className="p-3 transition rounded hover:bg-gray-800">
+                <Link to="/users" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     User Management
                 </Link>
-                <Link to="/products" className="p-3 transition text-gray-400 hover:text-white hover:bg-gray-800">
+                <Link to="/products" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Products
                 </Link>
-                <Link to="/orders" className="p-3 transition text-gray-400 hover:text-white hover:bg-gray-800">
+                <Link to="/orders" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Orders
                 </Link>
             </nav>
