@@ -17,6 +17,9 @@ export default function Sidebar() {
                 <Link to="/products" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Products
                 </Link>
+                <Link to="/vehicles" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
+                    Vehicles
+                </Link>
                 <Link to="/orders" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Orders
                 </Link>
