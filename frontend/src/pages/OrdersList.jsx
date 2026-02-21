@@ -15,13 +15,16 @@ const OrdersList = () => {
         const fetchOrders = async () => {
             if (!user?.email) return;
             try {
-                const data = await orderService.getOrdersByEmail(user.email);
+                // Admins see ALL orders; regular users see only their own
+                const data = user.role === 'ADMIN'
+                    ? await orderService.getAllOrders()
+                    : await orderService.getOrdersByEmail(user.email);
                 // Sort by date descending
                 const sortedOrders = data.sort((a, b) => new Date(b.date) - new Date(a.date));
                 setOrders(sortedOrders);
             } catch (err) {
                 console.error("Failed to fetch orders", err);
-                setError("Failed to load your orders.");
+                setError("Failed to load orders.");
             } finally {
                 setLoading(false);
             }

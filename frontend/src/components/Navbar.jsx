@@ -10,6 +10,11 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const cartCount = getCartCount();
 
+    const handleLogout = () => {
+        logout();
+        window.location.href = '/login';
+    };
+
     return (
         <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,7 +53,7 @@ const Navbar = () => {
                                     </Link>
                                 )}
                                 <button
-                                    onClick={logout}
+                                    onClick={handleLogout}
                                     className="px-4 py-2 border border-gray-200 text-red-500 rounded-lg hover:bg-red-50 hover:border-red-100 transition font-medium"
                                 >
                                     Logout
@@ -96,7 +101,7 @@ const Navbar = () => {
                                 {user.role === 'ADMIN' && (
                                     <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md">Admin Dashboard</Link>
                                 )}
-                                <button onClick={() => { logout(); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 text-red-500 hover:bg-red-50 rounded-md">Logout</button>
+                                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 text-red-500 hover:bg-red-50 rounded-md">Logout</button>
                             </>
                         ) : (
                             <>
