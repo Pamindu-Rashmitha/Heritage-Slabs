@@ -1,0 +1,8 @@
+docker run -d \
+  --name heritage-mysql \
+  -e MYSQL_ROOT_PASSWORD=Pamiya@440 \
+  -e MYSQL_DATABASE=heritage_erp \
+  -p 3307:3306 \
+  -v heritage_mysql_data:/var/lib/mysql \
+  --restart unless-stopped \
+  mysql:8.0
