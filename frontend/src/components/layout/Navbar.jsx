@@ -22,7 +22,7 @@ export default function Navbar() {
                     </div>
                 )}
                 <div className="text-xl font-semibold text-gray-800">
-                    Welcome, {user?.email || 'Admin'}
+                    Welcome, {user?.name || user?.email || 'Admin'}
                 </div>
             </div>
 

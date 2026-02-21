@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import AdminLayout from '../../components/layout/AdminLayout';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -79,7 +78,7 @@ export default function Profile() {
     };
 
     return (
-        <AdminLayout>
+        <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4">
             <div className="max-w-3xl p-6 mx-auto bg-white rounded-lg shadow">
                 <h2 className="mb-6 text-2xl font-bold text-gray-800">My Profile</h2>
 
@@ -154,6 +153,6 @@ export default function Profile() {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </div>
     );
 }
