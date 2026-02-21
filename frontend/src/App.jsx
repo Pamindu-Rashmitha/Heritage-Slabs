@@ -28,7 +28,7 @@ const NavbarWrapper = () => {
     const location = useLocation();
 
     // Paths that should NOT show the global navbar
-    const adminPaths = ['/dashboard', '/users', '/profile', '/products', '/vehicles'];
+    const adminPaths = ['/dashboard', '/users', '/products', '/vehicles'];
     const isAdminPath = adminPaths.includes(location.pathname);
 
     // Special case for orders: admins get the admin layout sidebar, so hide global navbar

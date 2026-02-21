@@ -11,9 +11,10 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
         const email = localStorage.getItem('email');
+        const name = localStorage.getItem('name');
 
         if (token && email) {
-            return { email, role };
+            return { email, role, name };
         }
         return null;
     });
@@ -25,15 +26,16 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         const response = await api.post('/auth/login', { email, password });
 
-        // Grab the token and real role from Spring Boot
-        const { token, role } = response.data;
+        // Grab the token, role, and name from Spring Boot
+        const { token, role, name } = response.data;
 
         // Save them to local storage
         localStorage.setItem('token', token);
         localStorage.setItem('email', email);
         localStorage.setItem('role', role);
+        localStorage.setItem('name', name || '');
 
-        setUser({ email, role });
+        setUser({ email, role, name });
         return true;
     };
 
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('email');
+        localStorage.removeItem('name');
         setUser(null);
     };
 

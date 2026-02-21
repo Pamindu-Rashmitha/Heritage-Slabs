@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, ShoppingCart, ClipboardList } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
@@ -7,6 +7,7 @@ import { AuthContext } from '../context/AuthContext';
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
     const { getCartCount } = useCart();
+    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const cartCount = getCartCount();
 
@@ -30,6 +31,13 @@ const Navbar = () => {
                         {user ? (
                             <div className="flex items-center gap-6">
                                 <span className="text-gray-600 font-medium">Hi, {user.name}</span>
+
+                                <button
+                                    onClick={() => navigate('/profile')}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                                >
+                                    My Profile
+                                </button>
 
                                 {/* Orders Link */}
                                 <Link to="/orders" className="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">

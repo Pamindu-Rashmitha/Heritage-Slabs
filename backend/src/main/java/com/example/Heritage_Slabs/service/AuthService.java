@@ -55,8 +55,7 @@ public class AuthService {
         String token = jwtService.generateToken(user);
 
         // Return the Token AND the Role from the database
-        return new AuthResponseDTO(token, user.getRole().name());
+        return new AuthResponseDTO(token, user.getRole().name(), user.getName());
     }
-
 
 }
