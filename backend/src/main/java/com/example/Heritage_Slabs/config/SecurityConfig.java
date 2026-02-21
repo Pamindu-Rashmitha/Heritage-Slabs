@@ -48,6 +48,7 @@ public class SecurityConfig {
                         // --- FIX: Added explicit "/api/products" to catch the root URL ---
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                         .requestMatchers("/api/products", "/api/products/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/orders", "/api/orders/**").authenticated()
 
                         .anyRequest().authenticated()
                 )
@@ -63,7 +64,7 @@ public class SecurityConfig {
         // --- FIXED CORS ORIGINS (Allowing both Vite ports just to be safe) ---
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
 
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
 

@@ -4,115 +4,11 @@ import { Menu, X, ArrowRight, Layout, Shield, TrendingUp, ShoppingCart, Clipboar
 import { useCart } from '../context/CartContext';
 
 const LandingPage = ({ user, logout }) => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showDemoModal, setShowDemoModal] = useState(false);
-    const { getCartCount } = useCart();
-    const cartCount = getCartCount();
 
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900">
-
-            {/* Navbar */}
-            <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center gap-2">
-                            <img src="/logo.png" alt="Vijitha Granites" className="h-10 w-10 rounded-lg object-cover" />
-                            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-700 to-gray-900">
-                                Heritage Slabs
-                            </span>
-                        </div>
-
-                        <div className="hidden md:flex items-center space-x-8">
-                            {user ? (
-                                <div className="flex items-center gap-4">
-                                    <span className="text-gray-600 font-medium">Hi, {user.name}</span>
-
-                                    {/* Orders Link */}
-                                    <Link to="/orders" className="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
-                                        <ClipboardList size={18} />
-                                        Orders
-                                    </Link>
-
-                                    {/* Cart Icon */}
-                                    <Link to="/cart" className="relative text-gray-600 hover:text-blue-600 transition">
-                                        <ShoppingCart size={22} />
-                                        {cartCount > 0 && (
-                                            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                                                {cartCount > 9 ? '9+' : cartCount}
-                                            </span>
-                                        )}
-                                    </Link>
-
-                                    {user.role === 'ADMIN' && (
-                                        <Link to="/admin" className="text-gray-600 hover:text-blue-600 font-medium transition">
-                                            Dashboard
-                                        </Link>
-                                    )}
-                                    <button
-                                        onClick={logout}
-                                        className="px-4 py-2 border border-gray-200 text-red-500 rounded-lg hover:bg-red-50 hover:border-red-100 transition font-medium"
-                                    >
-                                        Logout
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-4">
-                                    <Link to="/login" className="text-gray-600 hover:text-blue-600 font-medium transition">
-                                        Log in
-                                    </Link>
-                                    <Link
-                                        to="/register"
-                                        className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 font-medium"
-                                    >
-                                        Get Started
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="md:hidden flex items-center">
-                            <button
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="text-gray-600 hover:text-gray-900 p-2"
-                            >
-                                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Menu */}
-                {isMenuOpen && (
-                    <div className="md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
-                        <div className="px-4 pt-4 pb-6 space-y-3">
-                            {user ? (
-                                <>
-                                    <div className="px-3 py-2 text-gray-900 font-semibold">{user.name}</div>
-                                    <Link to="/cart" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md flex items-center gap-2">
-                                        <ShoppingCart size={18} /> Cart {cartCount > 0 && `(${cartCount})`}
-                                    </Link>
-                                    <Link to="/orders" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md flex items-center gap-2">
-                                        <ClipboardList size={18} /> Orders
-                                    </Link>
-                                    {user.role === 'ADMIN' && (
-                                        <Link to="/admin" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md">Dashboard</Link>
-                                    )}
-                                    <button onClick={logout} className="w-full text-left px-3 py-2 text-red-500 hover:bg-red-50 rounded-md">Logout</button>
-                                </>
-                            ) : (
-                                <>
-                                    <Link to="/cart" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md flex items-center gap-2">
-                                        <ShoppingCart size={18} /> Cart {cartCount > 0 && `(${cartCount})`}
-                                    </Link>
-                                    <Link to="/login" className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md">Log in</Link>
-                                    <Link to="/register" className="block px-3 py-2 bg-blue-600 text-white rounded-md text-center">Get Started</Link>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </nav>
+            {/* Navbar is now global in App.jsx */}
 
             {/* Hero Section */}
             <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
