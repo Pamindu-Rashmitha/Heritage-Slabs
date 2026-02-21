@@ -12,6 +12,9 @@ import LandingPage from './pages/LandingPage';
 
 import ProductManagement from './pages/admin/ProductManagement';
 import VehicleManagement from './pages/admin/VehicleManagement';
+import SupplierManagement from './pages/admin/SupplierManagement';
+import PurchaseOrderManagement from './pages/admin/PurchaseOrderManagement';
+import MaterialIntakeManagement from './pages/admin/MaterialIntakeManagement';
 import ProductCatalog from './pages/ProductCatalog';
 import OrderPage from './pages/OrderPage';
 import OrdersList from './pages/OrdersList';
@@ -28,7 +31,7 @@ const NavbarWrapper = () => {
     const location = useLocation();
 
     // Paths that should NOT show the global navbar
-    const adminPaths = ['/dashboard', '/users', '/products', '/vehicles'];
+    const adminPaths = ['/dashboard', '/users', '/profile', '/products', '/vehicles', '/suppliers', '/purchase-orders', '/material-intakes'];
     const isAdminPath = adminPaths.includes(location.pathname);
 
     // Special case for orders: admins get the admin layout sidebar, so hide global navbar
@@ -62,6 +65,9 @@ function App() {
 
                             <Route path="/products" element={<ProductManagement />} />
                             <Route path="/vehicles" element={<VehicleManagement />} />
+                            <Route path="/suppliers" element={<SupplierManagement />} />
+                            <Route path="/purchase-orders" element={<PurchaseOrderManagement />} />
+                            <Route path="/material-intakes" element={<MaterialIntakeManagement />} />
                         </Routes>
                     </div>
                 </Router>

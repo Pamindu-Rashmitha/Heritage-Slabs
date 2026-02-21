@@ -6,3 +6,10 @@ backend/src/main/resources/application.properties
 .idea/Heritage-Slabs.iml
 *.iml
 backend/src/main/resources/application.properties
+AI-01-G01-Proposal.pdf
+TAF-WD-AI-01-G01.pdf
+extract_pdf.py
+taf_utf8.txt
+taf.txt
+proposal_utf8.txt
+proposal.txt
