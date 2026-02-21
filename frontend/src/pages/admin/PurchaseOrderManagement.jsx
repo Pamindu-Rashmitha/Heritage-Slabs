@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import supplierService from '../../services/supplierService';
+import productService from '../../services/productService';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { AuthContext } from '../../context/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -8,6 +9,7 @@ const PurchaseOrderManagement = () => {
     const { user } = useContext(AuthContext);
     const [orders, setOrders] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
+    const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -22,11 +24,10 @@ const PurchaseOrderManagement = () => {
 
     const [formData, setFormData] = useState({
         supplierId: '',
+        productId: '',
         orderDate: '',
         expectedDelivery: '',
-        materialOrdered: '',
-        quantity: '',
-        totalCost: ''
+        quantity: ''
     });
 
     useEffect(() => {
@@ -36,12 +37,14 @@ const PurchaseOrderManagement = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [ordersData, suppliersData] = await Promise.all([
+            const [ordersData, suppliersData, productsData] = await Promise.all([
                 supplierService.getAllPurchaseOrders(),
-                supplierService.getAllSuppliers()
+                supplierService.getAllSuppliers(),
+                productService.getAllProducts()
             ]);
             setOrders(ordersData);
             setSuppliers(suppliersData);
+            setProducts(productsData);
             setError('');
         } catch (err) {
             console.error("Error loading data:", err);
@@ -54,11 +57,10 @@ const PurchaseOrderManagement = () => {
     const handleOpenAddModal = () => {
         setFormData({
             supplierId: suppliers.length > 0 ? suppliers[0].id : '',
-            orderDate: new Date().toISOString().split('T')[0], // Today's date
+            productId: products.length > 0 ? products[0].id : '',
+            orderDate: new Date().toISOString().split('T')[0],
             expectedDelivery: '',
-            materialOrdered: '',
-            quantity: '',
-            totalCost: ''
+            quantity: ''
         });
         setIsModalOpen(true);
     };
@@ -80,13 +82,32 @@ const PurchaseOrderManagement = () => {
         setIsSubmitting(true);
         setError('');
 
+        if (new Date(formData.expectedDelivery) < new Date(formData.orderDate)) {
+            setError('Expected delivery date cannot be before the order date.');
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
-            const newOrder = await supplierService.createPurchaseOrder(formData);
+            // Parse IDs to numbers — HTML <select> values are always strings
+            const payload = {
+                ...formData,
+                supplierId: parseInt(formData.supplierId, 10),
+                productId: parseInt(formData.productId, 10),
+                quantity: parseInt(formData.quantity, 10),
+            };
+            const newOrder = await supplierService.createPurchaseOrder(payload);
             setOrders([...orders, newOrder]);
             setIsModalOpen(false);
         } catch (err) {
             console.error("Error saving purchase order:", err);
-            alert(err.response?.data || 'Failed to save purchase order. Please check inputs.');
+            const errData = err.response?.data;
+            if (typeof errData === 'object' && errData !== null) {
+                const messages = Object.values(errData).join('\n');
+                alert(messages || 'Failed to save purchase order. Please check inputs.');
+            } else {
+                alert(errData || 'Failed to save purchase order. Please check inputs.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -147,11 +168,11 @@ const PurchaseOrderManagement = () => {
                         <table className="min-w-full leading-normal">
                             <thead>
                                 <tr className="text-sm leading-normal text-left text-gray-600 uppercase bg-gray-100">
-                                    <th className="px-6 py-3">PO #</th>
+                                    <th className="px-6 py-3">ID</th>
                                     <th className="px-6 py-3">Supplier</th>
-                                    <th className="px-6 py-3">Material & Qty</th>
+                                    <th className="px-6 py-3">Material</th>
                                     <th className="px-6 py-3">Dates</th>
-                                    <th className="px-6 py-3">Cost (LKR)</th>
+                                    <th className="px-6 py-3">Quantity</th>
                                     <th className="px-6 py-3">Status</th>
                                     <th className="px-6 py-3 text-center">Actions</th>
                                 </tr>
@@ -166,18 +187,19 @@ const PurchaseOrderManagement = () => {
                                                 <span className="font-bold text-gray-800">PO-{order.id}</span>
                                             </td>
                                             <td className="px-6 py-3 text-left">
-                                                <div className="font-medium text-gray-800">{order.supplierName}</div>
+                                                <div className="font-bold text-gray-800">{order.supplierName}</div>
                                             </td>
                                             <td className="px-6 py-3 text-left">
-                                                <div className="font-medium">{order.materialOrdered}</div>
-                                                <div className="text-xs text-gray-500">Qty: {order.quantity}</div>
+                                                <span className="px-3 py-1 text-xs font-bold text-blue-700 bg-blue-100 rounded-full">
+                                                    {order.productName || '—'}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-3 text-left">
                                                 <div className="text-xs"><span className="font-semibold text-gray-700">Ordered:</span> {order.orderDate}</div>
                                                 <div className="text-xs"><span className="font-semibold text-gray-700">Expected:</span> {order.expectedDelivery}</div>
                                             </td>
-                                            <td className="px-6 py-3 text-left font-medium">
-                                                {order.totalCost.toLocaleString()}
+                                            <td className="px-6 py-3 text-left">
+                                                {order.quantity}
                                             </td>
                                             <td className="px-6 py-3 text-left">
                                                 <span className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(order.status)}`}>
@@ -258,16 +280,21 @@ const PurchaseOrderManagement = () => {
                                     </div>
 
                                     <div className="col-span-2 sm:col-span-1">
-                                        <label className="block mb-1 text-sm font-medium text-gray-700">Material Ordered</label>
-                                        <input
-                                            type="text"
-                                            name="materialOrdered"
+                                        <label className="block mb-1 text-sm font-medium text-gray-700">Material Ordered (Product)</label>
+                                        <select
+                                            name="productId"
                                             required
-                                            value={formData.materialOrdered}
+                                            value={formData.productId}
                                             onChange={handleInputChange}
-                                            className="w-full p-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                                            placeholder="e.g., 20mm Galaxy Black Granite"
-                                        />
+                                            className="w-full p-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 bg-white"
+                                        >
+                                            <option value="" disabled>Select a product...</option>
+                                            {products.map(p => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name} ({p.grade})
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div className="col-span-2 sm:col-span-1">
@@ -277,19 +304,6 @@ const PurchaseOrderManagement = () => {
                                             name="quantity"
                                             required
                                             value={formData.quantity}
-                                            onChange={handleInputChange}
-                                            className="w-full p-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div className="col-span-2">
-                                        <label className="block mb-1 text-sm font-medium text-gray-700">Total Cost (LKR)</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            name="totalCost"
-                                            required
-                                            value={formData.totalCost}
                                             onChange={handleInputChange}
                                             className="w-full p-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                                         />

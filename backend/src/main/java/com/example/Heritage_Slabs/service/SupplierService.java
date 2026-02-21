@@ -7,10 +7,12 @@ import com.example.Heritage_Slabs.dto.response.MaterialIntakeResponseDTO;
 import com.example.Heritage_Slabs.dto.response.PurchaseOrderResponseDTO;
 import com.example.Heritage_Slabs.dto.response.SupplierResponseDTO;
 import com.example.Heritage_Slabs.model.MaterialIntake;
+import com.example.Heritage_Slabs.model.Product;
 import com.example.Heritage_Slabs.model.PurchaseOrder;
 import com.example.Heritage_Slabs.model.PurchaseOrderStatus;
 import com.example.Heritage_Slabs.model.Supplier;
 import com.example.Heritage_Slabs.repository.MaterialIntakeRepository;
+import com.example.Heritage_Slabs.repository.ProductRepository;
 import com.example.Heritage_Slabs.repository.PurchaseOrderRepository;
 import com.example.Heritage_Slabs.repository.SupplierRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,9 @@ public class SupplierService {
 
     @Autowired
     private MaterialIntakeRepository materialIntakeRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     // --- Supplier Methods ---
 
@@ -80,6 +85,13 @@ public class SupplierService {
         Supplier supplier = supplierRepository.findById(dto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found with id: " + dto.getSupplierId()));
 
+        // Look up the Product being ordered
+        Product product = null;
+        if (dto.getProductId() != null) {
+            product = productRepository.findById(dto.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + dto.getProductId()));
+        }
+
         PurchaseOrderStatus status = PurchaseOrderStatus.PENDING;
         if (dto.getStatus() != null) {
             try {
@@ -91,11 +103,10 @@ public class SupplierService {
 
         PurchaseOrder order = new PurchaseOrder(
                 supplier,
+                product,
                 LocalDate.now(),
                 dto.getExpectedDelivery(),
-                dto.getMaterialOrdered(),
                 dto.getQuantity(),
-                dto.getTotalCost(),
                 status);
 
         PurchaseOrder savedOrder = purchaseOrderRepository.save(order);
@@ -144,10 +155,14 @@ public class SupplierService {
 
         MaterialIntake savedIntake = materialIntakeRepository.save(intake);
 
-        // Optional: Update purchase order status to partially or fully delivered based
-        // on quantity
-        // For simplicity, we just set it to DELIVERED here or leave to separate update
-        // calls.
+        // Update Product Stock using the direct FK link on the Purchase Order
+        Product linkedProduct = order.getProduct();
+        if (linkedProduct != null) {
+            linkedProduct.setStockQuantity(linkedProduct.getStockQuantity() + dto.getQuantityReceived());
+            productRepository.save(linkedProduct);
+        }
+
+        // Mark the Purchase Order as DELIVERED
         order.setStatus(PurchaseOrderStatus.DELIVERED);
         purchaseOrderRepository.save(order);
 
@@ -179,9 +194,12 @@ public class SupplierService {
         dto.setSupplierName(order.getSupplier().getName());
         dto.setOrderDate(order.getOrderDate());
         dto.setExpectedDelivery(order.getExpectedDelivery());
-        dto.setMaterialOrdered(order.getMaterialOrdered());
+        // Map product fields from the direct FK link
+        if (order.getProduct() != null) {
+            dto.setProductId(order.getProduct().getId());
+            dto.setProductName(order.getProduct().getName());
+        }
         dto.setQuantity(order.getQuantity());
-        dto.setTotalCost(order.getTotalCost());
         dto.setStatus(order.getStatus().name());
         return dto;
     }

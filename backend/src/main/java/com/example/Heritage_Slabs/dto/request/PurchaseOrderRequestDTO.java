@@ -1,7 +1,6 @@
 package com.example.Heritage_Slabs.dto.request;
 
 import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.LocalDate;
@@ -11,20 +10,16 @@ public class PurchaseOrderRequestDTO {
     @NotNull(message = "Supplier ID is required")
     private Long supplierId;
 
+    @NotNull(message = "Product ID is required")
+    private Long productId;
+
     @NotNull(message = "Expected delivery date is required")
     @FutureOrPresent(message = "Expected delivery must be today or in the future")
     private LocalDate expectedDelivery;
 
-    @NotBlank(message = "Material ordered is required")
-    private String materialOrdered;
-
     @NotNull(message = "Quantity is required")
     @Positive(message = "Quantity must be greater than zero")
     private Integer quantity;
-
-    @NotNull(message = "Total cost is required")
-    @Positive(message = "Total cost must be greater than zero")
-    private Double totalCost;
 
     private String status; // PENDING, DELIVERED, CANCELLED
 
@@ -37,6 +32,14 @@ public class PurchaseOrderRequestDTO {
         this.supplierId = supplierId;
     }
 
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
     public LocalDate getExpectedDelivery() {
         return expectedDelivery;
     }
@@ -45,28 +48,12 @@ public class PurchaseOrderRequestDTO {
         this.expectedDelivery = expectedDelivery;
     }
 
-    public String getMaterialOrdered() {
-        return materialOrdered;
-    }
-
-    public void setMaterialOrdered(String materialOrdered) {
-        this.materialOrdered = materialOrdered;
-    }
-
     public Integer getQuantity() {
         return quantity;
     }
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
-    }
-
-    public Double getTotalCost() {
-        return totalCost;
-    }
-
-    public void setTotalCost(Double totalCost) {
-        this.totalCost = totalCost;
     }
 
     public String getStatus() {

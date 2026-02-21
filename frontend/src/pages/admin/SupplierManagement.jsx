@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import supplierService from '../../services/supplierService';
+import productService from '../../services/productService';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { AuthContext } from '../../context/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -7,6 +8,7 @@ import { Navigate } from 'react-router-dom';
 const SupplierManagement = () => {
     const { user } = useContext(AuthContext);
     const [suppliers, setSuppliers] = useState([]);
+    const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -22,22 +24,26 @@ const SupplierManagement = () => {
     });
 
     useEffect(() => {
-        loadSuppliers();
-    }, []);
+        const loadInitialData = async () => {
+            try {
+                setLoading(true);
+                const [suppliersData, productsData] = await Promise.all([
+                    supplierService.getAllSuppliers(),
+                    productService.getAllProducts()
+                ]);
+                setSuppliers(suppliersData);
+                setProducts(productsData);
+                setError('');
+            } catch (err) {
+                console.error("Error loading initial data:", err);
+                setError('Failed to load data. Ensure the backend is running and you have proper permissions.');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const loadSuppliers = async () => {
-        try {
-            setLoading(true);
-            const data = await supplierService.getAllSuppliers();
-            setSuppliers(data);
-            setError('');
-        } catch (err) {
-            console.error("Error loading suppliers:", err);
-            setError('Failed to load suppliers. Ensure the backend is running and you have proper permissions.');
-        } finally {
-            setLoading(false);
-        }
-    };
+        loadInitialData();
+    }, []);
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this supplier?')) {
@@ -228,15 +234,20 @@ const SupplierManagement = () => {
 
                             <div>
                                 <label className="block mb-1 text-sm font-medium text-gray-700">Supplied Material Type</label>
-                                <input
-                                    type="text"
+                                <select
                                     name="suppliedMaterial"
                                     required
                                     value={formData.suppliedMaterial}
                                     onChange={handleInputChange}
-                                    className="w-full p-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                                    placeholder="e.g., Granite Slabs, Marble, Quartz"
-                                />
+                                    className="w-full p-2.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white"
+                                >
+                                    <option value="" disabled>Select a product...</option>
+                                    {products.map(product => (
+                                        <option key={product.id} value={product.name}>
+                                            {product.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div>

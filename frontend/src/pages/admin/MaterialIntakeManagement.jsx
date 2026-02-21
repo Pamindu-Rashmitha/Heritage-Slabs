@@ -88,6 +88,12 @@ const MaterialIntakeManagement = () => {
         setIsSubmitting(true);
         setError('');
 
+        if (new Date(formData.arrivalDate) > new Date()) {
+            setError('Arrival date cannot be in the future.');
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
             const newIntake = await supplierService.logMaterialIntake(formData);
 
@@ -126,7 +132,7 @@ const MaterialIntakeManagement = () => {
                             <option value="">-- Filter by Purchase Order --</option>
                             {orders.map(o => (
                                 <option key={o.id} value={o.id}>
-                                    PO-{o.id} ({o.materialOrdered}) - {o.supplierName}
+                                    PO-{o.id} ({o.productName || 'Unknown'}) - {o.supplierName}
                                 </option>
                             ))}
                         </select>
@@ -222,7 +228,7 @@ const MaterialIntakeManagement = () => {
                                 >
                                     <option value="" disabled>-- Select corresponding order --</option>
                                     {orders.map(o => (
-                                        <option key={o.id} value={o.id}>PO-{o.id} - {o.materialOrdered} (Qty: {o.quantity})</option>
+                                        <option key={o.id} value={o.id}>PO-{o.id} - {o.productName || 'Unknown'} (Qty: {o.quantity})</option>
                                     ))}
                                 </select>
                             </div>

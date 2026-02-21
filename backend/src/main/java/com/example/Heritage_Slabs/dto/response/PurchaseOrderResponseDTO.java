@@ -6,11 +6,11 @@ public class PurchaseOrderResponseDTO {
     private Long id;
     private Long supplierId;
     private String supplierName;
+    private Long productId;
+    private String productName;
     private LocalDate orderDate;
     private LocalDate expectedDelivery;
-    private String materialOrdered;
     private Integer quantity;
-    private Double totalCost;
     private String status;
 
     // Getters and Setters
@@ -38,6 +38,22 @@ public class PurchaseOrderResponseDTO {
         this.supplierName = supplierName;
     }
 
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
     public LocalDate getOrderDate() {
         return orderDate;
     }
@@ -54,28 +70,12 @@ public class PurchaseOrderResponseDTO {
         this.expectedDelivery = expectedDelivery;
     }
 
-    public String getMaterialOrdered() {
-        return materialOrdered;
-    }
-
-    public void setMaterialOrdered(String materialOrdered) {
-        this.materialOrdered = materialOrdered;
-    }
-
     public Integer getQuantity() {
         return quantity;
     }
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
-    }
-
-    public Double getTotalCost() {
-        return totalCost;
-    }
-
-    public void setTotalCost(Double totalCost) {
-        this.totalCost = totalCost;
     }
 
     public String getStatus() {
