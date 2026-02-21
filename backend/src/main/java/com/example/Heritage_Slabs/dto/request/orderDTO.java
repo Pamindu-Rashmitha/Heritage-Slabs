@@ -2,6 +2,7 @@ package com.example.Heritage_Slabs.dto.request;
 
 import com.example.Heritage_Slabs.model.Status;
 import com.example.Heritage_Slabs.model.User;
+import com.example.Heritage_Slabs.dto.response.orderItemDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -11,13 +12,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class orderDTO {
 
-    @NotNull
     private Long id;
 
     @NotNull
@@ -26,7 +27,7 @@ public class orderDTO {
     @NotNull
     private double totalAmount;
 
-    @NotBlank
+    @NotNull
     private Status status;
 
     @NotNull
@@ -34,4 +35,6 @@ public class orderDTO {
 
     @NotBlank
     private String address;
+
+    private List<orderItemDTO> items;
 }
