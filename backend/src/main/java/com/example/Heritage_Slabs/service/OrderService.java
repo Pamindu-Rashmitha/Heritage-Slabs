@@ -26,11 +26,25 @@ public class OrderService {
     public Order createOrder(orderDTO orderDto) {
         Order order = modelMapper.map(orderDto, Order.class);
         order.setId(null);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        if (orderDto.getItems() != null) {
+            for (var itemDto : orderDto.getItems()) {
+                OrderItem item = modelMapper.map(itemDto, OrderItem.class);
+                item.setId(null);
+                item.setOrder_id(savedOrder);
+                orderItemRepository.save(item);
+            }
+        }
+        return savedOrder;
     }
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
+    }
+
+    public List<Order> getOrdersByEmail(String email) {
+        return orderRepository.findByUserEmail(email);
     }
 
     public Optional<Order> getOrderById(Long id) {
