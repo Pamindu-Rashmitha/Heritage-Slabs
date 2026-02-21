@@ -24,7 +24,10 @@ public class orderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Order>> getOrders() {
+    public ResponseEntity<List<Order>> getOrders(@RequestParam(required = false) String email) {
+        if (email != null) {
+            return ResponseEntity.ok(orderService.getOrdersByEmail(email));
+        }
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
