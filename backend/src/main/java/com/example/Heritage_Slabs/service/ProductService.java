@@ -2,6 +2,7 @@ package com.example.Heritage_Slabs.service;
 
 import com.example.Heritage_Slabs.dto.request.ProductRequestDTO;
 import com.example.Heritage_Slabs.dto.response.ProductResponseDTO;
+import com.example.Heritage_Slabs.dto.response.ReviewResponseDTO;
 import com.example.Heritage_Slabs.model.Product;
 import com.example.Heritage_Slabs.repository.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -119,6 +120,22 @@ public class ProductService {
     }
 
     private ProductResponseDTO mapToResponseDTO(Product product) {
+        List<ReviewResponseDTO> reviewDTOs = product.getReviews().stream()
+                .map(review -> {
+                    ReviewResponseDTO dto = new ReviewResponseDTO();
+                    dto.setId(review.getId());
+                    dto.setUserName(review.getUser().getName());
+                    dto.setRating(review.getRating());
+                    dto.setTitle(review.getTitle());
+                    dto.setComment(review.getComment());
+                    dto.setReviewDate(review.getReviewDate());
+                    dto.setSentimentEmoji(review.getSentimentEmoji());
+                    dto.setAdminReply(review.getAdminReply());
+                    dto.setRepliedBy(review.getRepliedBy());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
         return new ProductResponseDTO(
                 product.getId(),
                 product.getName(),
@@ -128,7 +145,9 @@ public class ProductService {
                 product.getStockQuantity(),
                 product.getLowStockThreshold(),
                 product.getDescription(),
-                product.getTextureUrl()
+                product.getTextureUrl(),
+                product.getAverageRating(),
+                reviewDTOs
         );
     }
 }

@@ -1,6 +1,8 @@
 package com.example.Heritage_Slabs.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -17,29 +19,33 @@ public class Product {
     private Double price;
 
     @Column(nullable = false)
-    private String dimensions; // e.g., "10x5 ft"
+    private String dimensions;
 
     @Column(nullable = false)
-    private String grade; // e.g., "Premium", "Standard"
+    private String grade;
 
     @Column(nullable = false)
     private Integer stockQuantity;
 
-    // Default is 10, but Admin can change it per product
     @Column(nullable = false)
     private Integer lowStockThreshold = 10;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // Stores the file path or URL to the image (Required for AI Visualizer)
     @Column(name = "texture_url")
     private String textureUrl;
 
-    // --- Constructors ---
+    //  Reviews (One-to-Many)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
 
-    public Product() {
-    }
+    //Average Rating
+    @Column(nullable = false)
+    private Double averageRating = 0.0;
+
+    // Constructors
+    public Product() {}
 
     public Product(String name, Double price, String dimensions, String grade, Integer stockQuantity, String textureUrl) {
         this.name = name;
@@ -49,8 +55,6 @@ public class Product {
         this.stockQuantity = stockQuantity;
         this.textureUrl = textureUrl;
     }
-
-    // --- Getters and Setters ---
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -78,4 +82,21 @@ public class Product {
 
     public String getTextureUrl() { return textureUrl; }
     public void setTextureUrl(String textureUrl) { this.textureUrl = textureUrl; }
+
+
+    public List<Review> getReviews() { return reviews; }
+    public void setReviews(List<Review> reviews) { this.reviews = reviews; }
+
+    public Double getAverageRating() { return averageRating; }
+    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
+
+    // Helper: Recalculate average rating
+    public void calculateAverageRating() {
+        if (reviews == null || reviews.isEmpty()) {
+            this.averageRating = 0.0;
+            return;
+        }
+        double sum = reviews.stream().mapToInt(Review::getRating).sum();
+        this.averageRating = Math.round((sum / reviews.size()) * 10.0) / 10.0; // 1 decimal
+    }
 }
