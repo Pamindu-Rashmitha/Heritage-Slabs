@@ -15,6 +15,7 @@ import VehicleManagement from './pages/admin/VehicleManagement';
 import SupplierManagement from './pages/admin/SupplierManagement';
 import PurchaseOrderManagement from './pages/admin/PurchaseOrderManagement';
 import MaterialIntakeManagement from './pages/admin/MaterialIntakeManagement';
+import ReviewManagement from './pages/admin/ReviewManagement';
 import ProductCatalog from './pages/ProductCatalog';
 import OrderPage from './pages/OrderPage';
 import OrdersList from './pages/OrdersList';
@@ -62,6 +63,7 @@ function App() {
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/users" element={<UserManagement />} />
                             <Route path="/profile" element={<Profile />} />
+                            <Route path="/admin/reviews" element={<ReviewManagement />} />
 
                             <Route path="/products" element={<ProductManagement />} />
                             <Route path="/vehicles" element={<VehicleManagement />} />
