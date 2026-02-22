@@ -32,6 +32,9 @@ export default function Sidebar() {
                 <Link to="/orders" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Orders
                 </Link>
+                <Link to="/admin/reviews" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
+                    Reviews
+                </Link>
             </nav>
         </div>
     );
