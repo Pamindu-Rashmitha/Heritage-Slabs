@@ -24,7 +24,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden">
                 {/* Header */}
-                <div className="bg-indigo-600 p-6 text-white text-center relative">
+                <div className="bg-blue-600 p-6 text-white text-center relative">
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 text-white/80 hover:text-white transition"
@@ -35,7 +35,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                         <CreditCard size={32} />
                     </div>
                     <h2 className="text-2xl font-bold">Secure Payment</h2>
-                    <p className="text-indigo-100 mt-1">Heritage Slabs Checkout</p>
+                    <p className="text-blue-100 mt-1">Heritage Slabs Checkout</p>
                 </div>
 
                 {/* Body */}
@@ -53,7 +53,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                                     type="text"
                                     value={cardNumber}
                                     onChange={(e) => setCardNumber(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition font-medium text-gray-800"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-medium text-gray-800"
                                     placeholder="0000 0000 0000 0000"
                                     required
                                 />
@@ -70,7 +70,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                                     type="text"
                                     value={expiry}
                                     onChange={(e) => setExpiry(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition font-medium text-gray-800"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-medium text-gray-800"
                                     placeholder="MM/YY"
                                     required
                                 />
@@ -81,7 +81,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                                     type="text"
                                     value={cvc}
                                     onChange={(e) => setCvc(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition font-medium text-gray-800"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-medium text-gray-800"
                                     placeholder="000"
                                     required
                                 />
@@ -92,7 +92,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 group"
+                        className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
                     >
                         {isSubmitting ? (
                             <>
