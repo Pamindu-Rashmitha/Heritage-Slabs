@@ -63,7 +63,52 @@ const ProductManagement = () => {
     };
 
     const handleSubmit = async (e) => {
-        // ... (rest of the code remains same)
+        e.preventDefault(); // Prevent page refresh
+
+        if (!selectedFile) {
+            alert("Please select a texture image.");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            // 1. Create the product (text data)
+            const createdProduct = await productService.createProduct({
+                name: formData.name,
+                price: parseFloat(formData.price),
+                dimensions: formData.dimensions,
+                grade: formData.grade,
+                stockQuantity: parseInt(formData.stockQuantity, 10),
+                lowStockThreshold: parseInt(formData.lowStockThreshold, 10),
+                description: formData.description
+            });
+
+            // 2. Upload the texture image using the new product's ID
+            await productService.uploadProductImage(createdProduct.id, selectedFile);
+
+            // 3. Refresh the table data and close the modal
+            await loadProducts();
+            setIsModalOpen(false);
+
+            // 4. Reset the form
+            setFormData({
+                name: '',
+                price: '',
+                dimensions: '',
+                grade: 'Premium',
+                stockQuantity: '',
+                lowStockThreshold: 10,
+                description: ''
+            });
+            setSelectedFile(null);
+
+        } catch (err) {
+            console.error("Error creating product:", err);
+            alert('Failed to save product. Check the console for more details.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (user?.role !== 'ADMIN') {
