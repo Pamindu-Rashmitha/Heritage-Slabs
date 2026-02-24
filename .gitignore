@@ -13,3 +13,4 @@ taf_utf8.txt
 taf.txt
 proposal_utf8.txt
 proposal.txt
+backend/src/main/resources/application.properties
