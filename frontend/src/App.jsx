@@ -9,7 +9,6 @@ import UserManagement from './pages/admin/UserManagement';
 import Profile from './pages/admin/Profile';
 import LandingPage from './pages/LandingPage';
 
-
 import ProductManagement from './pages/admin/ProductManagement';
 import VehicleManagement from './pages/admin/VehicleManagement';
 import SupplierManagement from './pages/admin/SupplierManagement';
@@ -31,8 +30,19 @@ const NavbarWrapper = () => {
     const { user } = useContext(AuthContext);
     const location = useLocation();
 
-    // Paths that should NOT show the global navbar
-    const adminPaths = ['/dashboard', '/users', '/profile', '/products', '/vehicles', '/suppliers', '/purchase-orders', '/material-intakes'];
+    // ADDED '/admin/reviews' to this array so the public navbar hides on the review page
+    const adminPaths = [
+        '/dashboard',
+        '/users',
+        '/profile',
+        '/products',
+        '/vehicles',
+        '/suppliers',
+        '/purchase-orders',
+        '/material-intakes',
+        '/admin/reviews'
+    ];
+
     const isAdminPath = adminPaths.includes(location.pathname);
 
     // Special case for orders: admins get the admin layout sidebar, so hide global navbar
@@ -77,6 +87,5 @@ function App() {
         </AuthProvider>
     );
 }
-
 
 export default App;
