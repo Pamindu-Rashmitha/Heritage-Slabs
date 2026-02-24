@@ -59,7 +59,7 @@ const OrdersList = () => {
                     </div>
                     <div>
                         <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-                            {user?.role === 'ADMIN' ? 'Order' : 'My'} <span className="text-blue-600 italic">Orders</span>
+                            {user?.role === 'ADMIN' ? 'Order' : 'My'} <span className="text-blue-600 italic">Management</span>
                         </h1>
                         <p className="text-gray-500 font-medium">
                             {user?.role === 'ADMIN'
