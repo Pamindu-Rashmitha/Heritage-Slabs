@@ -13,15 +13,23 @@ const OrdersList = () => {
 
     useEffect(() => {
         const fetchOrders = async () => {
-            if (!user?.email) return;
+            if (!user) return; // Make sure we have a user
             try {
-                const data = await orderService.getOrdersByEmail(user.email);
+                let data;
+
+                // If ADMIN, fetch all orders. Otherwise, fetch only their own orders.
+                if (user.role === 'ADMIN') {
+                    data = await orderService.getAllOrders();
+                } else {
+                    data = await orderService.getOrdersByEmail(user.email);
+                }
+
                 // Sort by date descending
                 const sortedOrders = data.sort((a, b) => new Date(b.date) - new Date(a.date));
                 setOrders(sortedOrders);
             } catch (err) {
                 console.error("Failed to fetch orders", err);
-                setError("Failed to load your orders.");
+                setError("Failed to load orders.");
             } finally {
                 setLoading(false);
             }
