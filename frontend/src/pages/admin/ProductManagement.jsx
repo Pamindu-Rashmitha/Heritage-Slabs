@@ -73,9 +73,10 @@ const ProductManagement = () => {
             grade: product.grade,
             stockQuantity: product.stockQuantity,
             lowStockThreshold: product.lowStockThreshold || 10,
-            description: product.description || ''
+            description: product.description || '',
+            textureUrl: product.textureUrl // <-- Add this to preserve the URL
         });
-        setSelectedFile(null); // Reset file so they only upload a new one if they want to
+        setSelectedFile(null);
         setIsModalOpen(true);
     };
 
@@ -108,7 +109,8 @@ const ProductManagement = () => {
                 grade: formData.grade,
                 stockQuantity: parseInt(formData.stockQuantity, 10),
                 lowStockThreshold: parseInt(formData.lowStockThreshold, 10),
-                description: formData.description
+                description: formData.description,
+                textureUrl: formData.textureUrl // <-- Send it back to the backend
             };
 
             let productIdToUse;
