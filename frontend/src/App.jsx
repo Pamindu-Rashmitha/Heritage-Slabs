@@ -31,9 +31,6 @@ const NavbarWrapper = () => {
     const { user } = useContext(AuthContext);
     const location = useLocation();
 
-    // Paths that should NOT show the global navbar
-    const adminPaths = ['/dashboard', '/users', '/profile', '/products', '/vehicles', '/suppliers', '/purchase-orders', '/material-intakes'];
-    // ADDED '/admin/reviews' to this array so the public navbar hides on the review page
     const adminPaths = [
         '/dashboard',
         '/users',
