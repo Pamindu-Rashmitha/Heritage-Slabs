@@ -2,10 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import productService from '../services/productService';
-import { ShoppingCart, Plus, Minus, Eye } from 'lucide-react';
+import ReviewModal from '../components/ReviewModal';
+import ReviewListModal from '../components/ReviewListModal';
+import { ShoppingCart, Plus, Minus, Eye, MessageCircle, Star } from 'lucide-react';
 
-const ProductCard = ({ product, onAddToCart }) => {
+const ProductCard = ({ product, onAddToCart, onOpenReview }) => {
     const [quantity, setQuantity] = useState(1);
+
+    // Render stars for average rating
+    const renderStars = (rating) => {
+        return Array.from({ length: 5 }).map((_, i) => (
+            <Star
+                key={i}
+                size={16}
+                className={i < Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}
+            />
+        ));
+    };
 
     return (
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
@@ -22,11 +35,24 @@ const ProductCard = ({ product, onAddToCart }) => {
                         Slab Texture
                     </div>
                 )}
-                <div className="absolute top-4 right-4 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+
+                {/* Top-Right Icons - Eye (original) + Comment (new) */}
+                <div className="absolute top-4 right-4 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                    
+                    {/* Original Eye Icon - UNCHANGED FROM YOUR TEAM */}
                     <button className="bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-xl text-blue-600 hover:bg-blue-600 hover:text-white transition group/btn">
                         <Eye size={20} className="group-hover/btn:scale-110 transition" />
                     </button>
+
+                    {/* New Comment Icon */}
+                    <button
+                        onClick={() => onOpenReview(product)}
+                        className="bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-xl text-blue-600 hover:bg-blue-600 hover:text-white transition hover:scale-110"
+                    >
+                        <MessageCircle size={22} />
+                    </button>
                 </div>
+
                 <div className="absolute bottom-4 left-4">
                     <span className="bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm border border-white/50">
                         {product.grade} Grade
@@ -36,6 +62,14 @@ const ProductCard = ({ product, onAddToCart }) => {
 
             {/* Details Section */}
             <div className="p-8">
+                {/* Average Rating */}
+                {product.averageRating > 0 && (
+                    <div className="flex items-center gap-1 mb-3">
+                        <div className="flex">{renderStars(product.averageRating)}</div>
+                        <span className="text-sm text-gray-500 ml-1">({product.averageRating})</span>
+                    </div>
+                )}
+
                 <div className="mb-6">
                     <h2 className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition mb-2">{product.name}</h2>
                     <p className="text-gray-500 text-sm font-medium flex items-center gap-2">
@@ -94,12 +128,28 @@ const ProductCard = ({ product, onAddToCart }) => {
 const ProductCatalog = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // Modals
+    const [showReviewModal, setShowReviewModal] = useState(false);      // Write review
+    const [showReviewListModal, setShowReviewListModal] = useState(false); // View all reviews
+    const [selectedProduct, setSelectedProduct] = useState(null);
+
     const { addToCart } = useCart();
     const navigate = useNavigate();
 
     const handleAddToCart = (product, quantity) => {
         addToCart(product, quantity);
         navigate('/cart');
+    };
+
+    const handleOpenReview = (product) => {
+        setSelectedProduct(product);
+        setShowReviewListModal(true);
+    };
+
+    const handleReviewSubmitted = async () => {
+        const data = await productService.getAllProducts();
+        setProducts(data);
     };
 
     useEffect(() => {
@@ -153,11 +203,32 @@ const ProductCatalog = () => {
                                 key={product.id}
                                 product={product}
                                 onAddToCart={handleAddToCart}
+                                onOpenReview={handleOpenReview}
                             />
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* Write Review Modal */}
+            <ReviewModal
+                isOpen={showReviewModal}
+                onClose={() => setShowReviewModal(false)}
+                productId={selectedProduct?.id}
+                productName={selectedProduct?.name}
+                onReviewSubmitted={handleReviewSubmitted}
+            />
+
+            {/* Review List Modal (Click 💬 → shows all reviews) */}
+            <ReviewListModal
+                isOpen={showReviewListModal}
+                onClose={() => setShowReviewListModal(false)}
+                product={selectedProduct}
+                onWriteReview={() => {
+                    setShowReviewListModal(false);
+                    setTimeout(() => setShowReviewModal(true), 300);
+                }}
+            />
         </div>
     );
 };
