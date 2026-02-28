@@ -19,8 +19,16 @@ public class orderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@Valid @RequestBody orderDTO orderDto) {
-        return ResponseEntity.ok(orderService.createOrder(orderDto));
+    public ResponseEntity<?> createOrder(@Valid @RequestBody orderDTO orderDto) {
+        try {
+            return ResponseEntity.ok(orderService.createOrder(orderDto));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(java.util.Map.of(
+                    "error", e.getClass().getSimpleName(),
+                    "message", e.getMessage() != null ? e.getMessage() : "Unknown error",
+                    "cause", e.getCause() != null ? e.getCause().getMessage() : "No cause"));
+        }
     }
 
     @GetMapping
