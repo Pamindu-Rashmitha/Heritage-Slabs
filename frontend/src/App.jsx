@@ -12,6 +12,7 @@ import LandingPage from './pages/LandingPage';
 
 import ProductManagement from './pages/admin/ProductManagement';
 import VehicleManagement from './pages/admin/VehicleManagement';
+import DeliveryManagement from './pages/admin/DeliveryManagement';
 import SupplierManagement from './pages/admin/SupplierManagement';
 import PurchaseOrderManagement from './pages/admin/PurchaseOrderManagement';
 import MaterialIntakeManagement from './pages/admin/MaterialIntakeManagement';
@@ -30,8 +31,25 @@ const NavbarWrapper = () => {
     const { user } = useContext(AuthContext);
     const location = useLocation();
 
+<<<<<<< Updated upstream
     // Paths that should NOT show the global navbar
     const adminPaths = ['/dashboard', '/users', '/profile', '/products', '/vehicles', '/suppliers', '/purchase-orders', '/material-intakes'];
+=======
+    // ADDED '/admin/reviews' to this array so the public navbar hides on the review page
+    const adminPaths = [
+        '/dashboard',
+        '/users',
+        '/profile',
+        '/products',
+        '/vehicles',
+        '/deliveries',
+        '/suppliers',
+        '/purchase-orders',
+        '/material-intakes',
+        '/admin/reviews'
+    ];
+
+>>>>>>> Stashed changes
     const isAdminPath = adminPaths.includes(location.pathname);
 
     // Special case for orders: admins get the admin layout sidebar, so hide global navbar
@@ -65,6 +83,7 @@ function App() {
 
                             <Route path="/products" element={<ProductManagement />} />
                             <Route path="/vehicles" element={<VehicleManagement />} />
+                            <Route path="/deliveries" element={<DeliveryManagement />} />
                             <Route path="/suppliers" element={<SupplierManagement />} />
                             <Route path="/purchase-orders" element={<PurchaseOrderManagement />} />
                             <Route path="/material-intakes" element={<MaterialIntakeManagement />} />

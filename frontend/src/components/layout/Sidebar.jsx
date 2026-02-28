@@ -29,6 +29,9 @@ export default function Sidebar() {
                 <Link to="/vehicles" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Vehicles
                 </Link>
+                <Link to="/deliveries" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
+                    Deliveries
+                </Link>
                 <Link to="/orders" className="p-3 transition rounded text-gray-400 hover:text-white hover:bg-gray-800">
                     Orders
                 </Link>

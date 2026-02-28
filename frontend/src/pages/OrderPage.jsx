@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import orderService from '../services/orderService';
 import api from '../services/api';
 import PaymentModal from '../components/PaymentModal';
-import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const OrderPage = () => {
@@ -47,7 +47,7 @@ const OrderPage = () => {
             const orderData = {
                 user_id: fullUser,
                 totalAmount: totalAmount,
-                status: 'Pending',
+                status: 'PENDING',
                 date: new Date().toISOString(),
                 address: address,
                 items: orderItems
@@ -56,7 +56,7 @@ const OrderPage = () => {
             const createdOrder = await orderService.createOrder(orderData);
 
             // 4. Mock payment success - update status to 'paid'
-            await orderService.updateOrderStatus(createdOrder.id, 'paid');
+            await orderService.updateOrderStatus(createdOrder.id, 'PAID');
 
             // 5. Clear cart and redirect
             clearCart();
@@ -64,7 +64,9 @@ const OrderPage = () => {
             navigate('/');
         } catch (err) {
             console.error("Order process failed", err);
-            setError("Failed to process order. Please try again.");
+            console.error("Error response data:", err.response?.data);
+            const serverMsg = err.response?.data?.message || err.response?.data?.cause || '';
+            setError(serverMsg || "Failed to process order. Please try again.");
         } finally {
             setLoading(false);
         }
