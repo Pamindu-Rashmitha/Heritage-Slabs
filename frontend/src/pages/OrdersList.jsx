@@ -13,12 +13,17 @@ const OrdersList = () => {
 
     useEffect(() => {
         const fetchOrders = async () => {
-            if (!user?.email) return;
+            if (!user) return; // Make sure we have a user
             try {
-                // Admins see ALL orders; regular users see only their own
-                const data = user.role === 'ADMIN'
-                    ? await orderService.getAllOrders()
-                    : await orderService.getOrdersByEmail(user.email);
+                let data;
+
+                // If ADMIN, fetch all orders. Otherwise, fetch only their own orders.
+                if (user.role === 'ADMIN') {
+                    data = await orderService.getAllOrders();
+                } else {
+                    data = await orderService.getOrdersByEmail(user.email);
+                }
+
                 // Sort by date descending
                 const sortedOrders = data.sort((a, b) => new Date(b.date) - new Date(a.date));
                 setOrders(sortedOrders);
@@ -51,95 +56,111 @@ const OrdersList = () => {
     }
 
     const content = (
-        <div className={`max-w-4xl mx-auto px-4 ${user?.role === 'ADMIN' ? 'py-6' : 'pt-28 pb-12'}`}>
-            <div className="flex items-center gap-4 mb-8">
-                <div className="bg-blue-600/10 p-3 rounded-2xl">
-                    <ShoppingBag className="w-8 h-8 text-blue-600" />
+        <div className={`max-w-7xl mx-auto px-4 ${user?.role === 'ADMIN' ? 'py-4' : 'pt-28 pb-12'}`}>
+            <div className={`flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 ${user?.role === 'ADMIN' ? 'bg-white p-6 rounded-lg shadow-sm border border-gray-100' : ''}`}>
+                <div className="flex items-center gap-4">
+                    <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                        <ShoppingBag className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+                            {user?.role === 'ADMIN' ? 'Order Management' : 'My Orders'}
+                        </h1>
+                        <p className="text-gray-500 text-sm">
+                            {user?.role === 'ADMIN'
+                                ? 'Review and manage all customer slab acquisitions'
+                                : 'View and track your previous premium purchases'}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        {user?.role === 'ADMIN' ? 'Order Management' : 'My Orders'}
-                    </h1>
-                    <p className="text-gray-500">
-                        {user?.role === 'ADMIN' ? 'Review and manage all customer orders' : 'View and track your previous purchases'}
-                    </p>
-                </div>
+                <Link
+                    to="/catalog"
+                    className="inline-flex items-center gap-2 bg-white text-gray-600 px-5 py-2.5 rounded-xl font-semibold hover:text-blue-600 transition shadow-sm border border-gray-200 hover:shadow-md"
+                >
+                    Browse More
+                </Link>
             </div>
 
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 flex items-center gap-3">
-                    <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+                <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl mb-6 flex items-center gap-3 font-semibold">
+                    <Clock size={18} />
                     {error}
                 </div>
             )}
 
             {orders.length === 0 && !error ? (
-                <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm">
-                    <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="bg-white rounded-xl p-16 text-center border border-gray-100 shadow-sm max-w-2xl mx-auto">
+                    <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                         <Package className="w-10 h-10 text-gray-300" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No orders found</h3>
                     <p className="text-gray-500 mb-8 max-w-sm mx-auto">
-                        Explore our stunning collection of granite slabs!
+                        Your project's masterpiece is waiting. Explore our premium collection today!
                     </p>
                     <Link
                         to="/catalog"
-                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/20"
+                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-400/20 hover:scale-[1.01] active:scale-[0.99] transform"
                     >
-                        Explore Collection <ChevronRight className="w-5 h-5" />
+                        EXPLORE CATALOG <ChevronRight className="w-5 h-5" />
                     </Link>
                 </div>
             ) : (
                 <div className="space-y-6">
                     {orders.map((order) => (
-                        <div key={order.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
-                            <div className="p-6 border-b border-gray-50 flex flex-wrap items-center justify-between gap-4 bg-gray-50/50">
-                                <div className="flex items-center gap-6">
-                                    <div>
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Order ID</p>
-                                        <p className="font-mono font-bold text-gray-900">#HS-{order.id.toString().padStart(5, '0')}</p>
+                        <div key={order.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow group">
+                            <div className="p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4 bg-gray-50/50">
+                                <div className="flex flex-wrap items-center gap-8">
+                                    <div className="space-y-0.5">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Transaction ID</p>
+                                        <p className="font-mono font-bold text-gray-800 text-base">#HS-{order.id.toString().padStart(5, '0')}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Date</p>
-                                        <div className="flex items-center gap-2 text-gray-900 font-bold">
-                                            <Calendar className="w-4 h-4 text-gray-400" />
+                                    <div className="space-y-0.5">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Date</p>
+                                        <div className="flex items-center gap-2 text-gray-800 font-semibold text-sm">
+                                            <Calendar className="w-3.5 h-3.5 text-blue-500" />
                                             {new Date(order.date).toLocaleDateString()}
                                         </div>
                                     </div>
                                     {user?.role === 'ADMIN' && (
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Customer</p>
-                                            <p className="text-sm font-bold text-gray-900">{order.user_id?.email || 'N/A'}</p>
+                                        <div className="space-y-0.5">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Client</p>
+                                            <p className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded border border-blue-100">{order.user_id?.email || 'N/A'}</p>
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${getStatusColor(order.status)}`}>
+                                <div className="flex items-center gap-6">
+                                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(order.status)}`}>
                                         {order.status}
                                     </span>
                                     <div className="text-right">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total Amount</p>
-                                        <p className="text-xl font-bold text-blue-600">{order.totalAmount.toLocaleString()} LKR</p>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Value</p>
+                                        <p className="text-2xl font-bold text-blue-600">
+                                            {order.totalAmount.toLocaleString()} <span className="text-xs font-semibold text-gray-400 uppercase">Lkr</span>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="p-6">
-                                <div className="flex items-start gap-3 mb-6">
-                                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-bold text-gray-400 mb-1">Shipping Address</p>
-                                        <p className="text-gray-700 leading-relaxed font-medium">{order.address}</p>
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100 flex-shrink-0">
+                                            <MapPin className="w-4 h-4 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Delivery Destination</p>
+                                            <p className="text-gray-700 leading-relaxed font-semibold text-xs">{order.address}</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50/50 rounded-2xl p-4">
-                                    <div className="flex items-center gap-2 mb-3 text-gray-400">
-                                        <Package className="w-4 h-4" />
-                                        <span className="text-xs font-bold uppercase tracking-wider">Order Contents</span>
+                                <div className="bg-blue-50/50 rounded-lg p-5 border border-blue-100 space-y-2">
+                                    <div className="flex items-center gap-2 text-blue-600">
+                                        <Package size={16} />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Project Materials</span>
                                     </div>
-                                    <p className="text-sm text-gray-600 font-medium italic">
-                                        Slabs and materials for your heritage projects.
+                                    <p className="text-xs text-gray-600 font-semibold leading-relaxed">
+                                        Premium slabs and architectural materials curated for your project's specific requirements.
                                     </p>
                                 </div>
                             </div>

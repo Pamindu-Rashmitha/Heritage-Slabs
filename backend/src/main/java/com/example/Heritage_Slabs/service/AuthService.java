@@ -18,7 +18,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService; // Add JwtService
+    private final JwtService jwtService;
 
     @Autowired
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
@@ -43,7 +43,6 @@ public class AuthService {
         return "User registered successfully!";
     }
 
-    // NEW: Login method
     public AuthResponseDTO login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Error: User not found!"));
@@ -54,8 +53,6 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);
 
-        // Return the Token AND the Role from the database
-        return new AuthResponseDTO(token, user.getRole().name(), user.getName());
+        return new AuthResponseDTO(token, user.getRole().name(), user.getName(), user.getId());
     }
-
 }

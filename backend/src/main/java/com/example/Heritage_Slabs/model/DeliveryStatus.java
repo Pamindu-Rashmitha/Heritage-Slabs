@@ -1,8 +1,7 @@
 package com.example.Heritage_Slabs.model;
 
-public enum Status {
+public enum DeliveryStatus {
     PENDING,
-    PAID,
     SHIPPED,
-    DELIVERED
+    DELIVERED,
 }
