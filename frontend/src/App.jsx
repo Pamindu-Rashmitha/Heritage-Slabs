@@ -42,9 +42,9 @@ const NavbarWrapper = () => {
         '/suppliers',
         '/purchase-orders',
         '/material-intakes',
-        '/admin/reviews',
-        '/admin/feedback'
+        '/admin/reviews'
     ];
+
 
     const isAdminPath = adminPaths.includes(location.pathname);
 
