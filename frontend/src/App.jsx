@@ -16,7 +16,7 @@ import SupplierManagement from './pages/admin/SupplierManagement';
 import PurchaseOrderManagement from './pages/admin/PurchaseOrderManagement';
 import MaterialIntakeManagement from './pages/admin/MaterialIntakeManagement';
 import ReviewManagement from './pages/admin/ReviewManagement';
-import FeedbackManagement from './pages/admin/FeedbackManagement'; // NEW IMPORT
+import FeedbackManagement from './pages/admin/FeedbackManagement';
 import ProductCatalog from './pages/ProductCatalog';
 import OrderPage from './pages/OrderPage';
 import OrdersList from './pages/OrdersList';
@@ -32,6 +32,7 @@ const NavbarWrapper = () => {
     const { user } = useContext(AuthContext);
     const location = useLocation();
 
+
     const adminPaths = [
         '/dashboard',
         '/users',
@@ -42,9 +43,9 @@ const NavbarWrapper = () => {
         '/suppliers',
         '/purchase-orders',
         '/material-intakes',
-        '/admin/reviews'
+        '/admin/reviews',
+        '/admin/feedback'
     ];
-
 
     const isAdminPath = adminPaths.includes(location.pathname);
 
@@ -77,7 +78,7 @@ function App() {
                             <Route path="/users" element={<UserManagement />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/admin/reviews" element={<ReviewManagement />} />
-                            <Route path="/admin/feedback" element={<FeedbackManagement />} /> 
+                            <Route path="/admin/feedback" element={<FeedbackManagement />} />
 
                             <Route path="/products" element={<ProductManagement />} />
                             <Route path="/vehicles" element={<VehicleManagement />} />
