@@ -4,9 +4,10 @@ import { useCart } from '../context/CartContext';
 import productService from '../services/productService';
 import ReviewModal from '../components/ReviewModal';
 import ReviewListModal from '../components/ReviewListModal';
+import VisualizerModal from '../components/VisualizerModal';
 import { ShoppingCart, Plus, Minus, Eye, MessageCircle, Star } from 'lucide-react';
 
-const ProductCard = ({ product, onAddToCart, onOpenReview }) => {
+const ProductCard = ({ product, onAddToCart, onOpenReview, onTryInRoom }) => {
     const [quantity, setQuantity] = useState(1);
 
     // Render stars for average rating
@@ -38,7 +39,7 @@ const ProductCard = ({ product, onAddToCart, onOpenReview }) => {
 
                 {/* Top-Right Icons - Eye (original) + Comment (new) */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-                    
+
                     {/* Original Eye Icon - UNCHANGED FROM YOUR TEAM */}
                     <button className="bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-xl text-blue-600 hover:bg-blue-600 hover:text-white transition group/btn">
                         <Eye size={20} className="group-hover/btn:scale-110 transition" />
@@ -116,7 +117,10 @@ const ProductCard = ({ product, onAddToCart, onOpenReview }) => {
                         Add to Cart
                     </button>
 
-                    <button className="w-full bg-blue-50 text-blue-600 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-blue-100 transition-colors">
+                    <button
+                        onClick={() => onTryInRoom(product)}
+                        className="w-full bg-blue-50 text-blue-600 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-blue-100 transition-colors"
+                    >
                         Try in Room
                     </button>
                 </div>
@@ -128,10 +132,11 @@ const ProductCard = ({ product, onAddToCart, onOpenReview }) => {
 const ProductCatalog = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Modals
     const [showReviewModal, setShowReviewModal] = useState(false);      // Write review
     const [showReviewListModal, setShowReviewListModal] = useState(false); // View all reviews
+    const [showVisualizerModal, setShowVisualizerModal] = useState(false); // AI Visualizer
     const [selectedProduct, setSelectedProduct] = useState(null);
 
     const { addToCart } = useCart();
@@ -145,6 +150,11 @@ const ProductCatalog = () => {
     const handleOpenReview = (product) => {
         setSelectedProduct(product);
         setShowReviewListModal(true);
+    };
+
+    const handleOpenVisualizer = (product) => {
+        setSelectedProduct(product);
+        setShowVisualizerModal(true);
     };
 
     const handleReviewSubmitted = async () => {
@@ -204,6 +214,7 @@ const ProductCatalog = () => {
                                 product={product}
                                 onAddToCart={handleAddToCart}
                                 onOpenReview={handleOpenReview}
+                                onTryInRoom={handleOpenVisualizer}
                             />
                         ))}
                     </div>
@@ -228,6 +239,14 @@ const ProductCatalog = () => {
                     setShowReviewListModal(false);
                     setTimeout(() => setShowReviewModal(true), 300);
                 }}
+            />
+
+            {/* AI Visualizer Modal */}
+            <VisualizerModal
+                isOpen={showVisualizerModal}
+                onClose={() => setShowVisualizerModal(false)}
+                productImageUrl={selectedProduct?.textureUrl ? `http://localhost:8080${selectedProduct.textureUrl}` : ''}
+                productName={selectedProduct?.name || ''}
             />
         </div>
     );
