@@ -88,17 +88,33 @@ public class OrderService {
         result.put("order_id", order.getId() + "");
         result.put("items", "Heritage Slabs Order #" + order.getId());
         result.put("currency", "LKR");
-        result.put("amount", String.valueOf(order.getTotalAmount()));
+        java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
+        String formattedAmount = df.format(order.getTotalAmount());
+
+        result.put("amount", formattedAmount);
 
         //Customer details
-        result.put("first_name", order.getUser_id().getName());
+        String fullName = order.getUser_id().getName() != null ? order.getUser_id().getName() : "Customer";
+        String firstName = fullName;
+        String lastName = "User";
+        if (fullName.contains(" ")) {
+            firstName = fullName.substring(0, fullName.indexOf(" "));
+            lastName = fullName.substring(fullName.indexOf(" ") + 1);
+        }
+
+        result.put("first_name", firstName);
+        result.put("last_name", lastName);
         result.put("email", order.getUser_id().getEmail());
+        result.put("phone", "0000000000");
+        result.put("address", order.getAddress() != null ? order.getAddress() : "No Address");
+        result.put("city", "Colombo");
+        result.put("country", "Sri Lanka");
 
         // Generate hash
         String hash = generateHash(
                 merchant_id,
-                order.getId() + "",
-                String.valueOf(order.getTotalAmount()),
+                String.valueOf(order.getId()),
+                formattedAmount,
                 "LKR"
         );
 

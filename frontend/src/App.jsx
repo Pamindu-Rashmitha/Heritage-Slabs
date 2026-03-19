@@ -15,6 +15,8 @@ import ProductCatalog from './pages/ProductCatalog';
 import OrderPage from './pages/OrderPage';
 import OrdersList from './pages/OrdersList';
 import Navbar from './components/Navbar';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
 
 // Wrapper to pass user/logout from AuthContext as props to LandingPage
 function LandingPageWrapper() {
@@ -53,6 +55,8 @@ function App() {
                             <Route path="/catalog" element={<ProductCatalog />} />
                             <Route path="/cart" element={<OrderPage />} />
                             <Route path="/orders" element={<OrdersList />} />
+                            <Route path="/payment/success" element={<PaymentSuccess />} />
+                            <Route path="/payment/cancel" element={<PaymentCancel />} />
 
                             {/* Protected Admin Routes */}
                             <Route path="/dashboard" element={<Dashboard />} />

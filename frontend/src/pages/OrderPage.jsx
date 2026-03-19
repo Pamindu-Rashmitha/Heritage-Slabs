@@ -3,8 +3,7 @@ import { useCart } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
 import orderService from '../services/orderService';
 import api from '../services/api';
-import PaymentModal from '../components/PaymentModal';
-import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const OrderPage = () => {
@@ -14,7 +13,6 @@ const OrderPage = () => {
 
     const [address, setAddress] = useState('');
     const [phone, setPhone] = useState('');
-    const [showPayment, setShowPayment] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -23,11 +21,6 @@ const OrderPage = () => {
     const handleConfirmOrder = async (e) => {
         e.preventDefault();
         if (cartItems.length === 0) return;
-        setShowPayment(true);
-    };
-
-    const handlePaymentSuccess = async () => {
-        setShowPayment(false);
         setLoading(true);
         setError('');
 
@@ -55,17 +48,29 @@ const OrderPage = () => {
 
             const createdOrder = await orderService.createOrder(orderData);
 
-            // 4. Mock payment success - update status to 'paid'
-            await orderService.updateOrderStatus(createdOrder.id, 'paid');
+            // 4. Fetch PayHere payment data parameters via initiatePayment
+            const payhereData = await orderService.initiatePayment(createdOrder.id);
+            
+            // 5. Create invisible HTML form dynamically and submit to PayHere Sandbox
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://sandbox.payhere.lk/pay/checkout';
 
-            // 5. Clear cart and redirect
-            clearCart();
-            alert("Order placed and paid successfully!");
-            navigate('/');
+            // Append all PayHere payload properties to the form
+            Object.keys(payhereData).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = payhereData[key];
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+
         } catch (err) {
-            console.error("Order process failed", err);
-            setError("Failed to process order. Please try again.");
-        } finally {
+            console.error("Order process or payment initialization failed", err);
+            setError("Failed to initialize payment. Please try again.");
             setLoading(false);
         }
     };
@@ -300,13 +305,6 @@ const OrderPage = () => {
                     </div>
                 </div>
             </div>
-
-            <PaymentModal
-                isOpen={showPayment}
-                onClose={() => setShowPayment(false)}
-                onPaymentSuccess={handlePaymentSuccess}
-                totalAmount={totalAmount}
-            />
         </div>
     );
 };
