@@ -74,17 +74,36 @@ async def genai_visualize(
         # Analyze images to create a perfect prompt
         # We ask Gemini to describe the room but swap the floor
         analysis_prompt = """
-        You are an interior design AI helper.
-        Image 1 is the User's Room.
-        Image 2 is the Granite Texture they want.
+        You are an expert interior design visualization AI.
+        Image 1 is the User's Room (the ORIGINAL room photo).
+        Image 2 is the Granite/Tile Texture they want applied ONLY to the floor.
         
-        Task: Write a detailed image generation prompt to re-create Image 1 but with the flooring from Image 2.
+        Task: Write a highly detailed image generation prompt that produces an image IDENTICAL to Image 1 in every way, EXCEPT the floor surface is replaced with the granite/tile from Image 2.
         
-        Rules for the prompt:
-        - Describe the room's angle, lighting, furniture, and style exactly as seen in Image 1.
-        - Describe the flooring explicitly as the granite seen in Image 2 (mention its color, pattern, and finish).
-        - The goal is to make a "Renovated" version of Image 1.
-        - Output ONLY the prompt string, no markdown.
+        CRITICAL RULES for the prompt you generate:
+        1. PRESERVATION (most important): The prompt MUST describe and preserve EVERY element of Image 1 EXACTLY as it appears:
+           - Same camera angle, perspective, and field of view
+           - Same walls (color, texture, material)
+           - Same ceiling (color, features, lights)
+           - Same furniture (type, position, color, style) — describe each piece explicitly
+           - Same decorations, objects, and accessories in their exact positions
+           - Same windows, doors, curtains, and architectural features
+           - Same lighting conditions, shadows, and ambient light
+           - Same room dimensions and proportions
+        
+        2. FLOOR CHANGE ONLY: Describe the NEW floor using the granite/tile from Image 2:
+           - Mention its exact color, veining pattern, finish (polished/matte/honed)
+           - Describe how it tiles across the floor area
+           - Describe realistic light reflections on the new floor surface consistent with the room's existing lighting
+        
+        3. NEGATIVE INSTRUCTIONS (include these in the prompt):
+           - "Do NOT change, add, remove, or reposition any furniture, objects, walls, doors, windows, or background elements"
+           - "The room layout, decoration, and all non-floor surfaces must remain exactly as in the original photo"
+           - "Only the floor material/texture should change"
+        
+        4. STYLE: Specify "photorealistic interior photograph, high resolution, natural lighting" in the prompt.
+        
+        5. Output ONLY the final prompt string. No markdown, no explanation, no labels.
         """
         
         # Send both images to Gemini 2.5 Flash
