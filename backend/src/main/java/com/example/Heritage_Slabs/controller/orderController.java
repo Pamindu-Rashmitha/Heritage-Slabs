@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/orders")
@@ -21,6 +22,35 @@ public class orderController {
     @PostMapping
     public ResponseEntity<Order> createOrder(@Valid @RequestBody orderDTO orderDto) {
         return ResponseEntity.ok(orderService.createOrder(orderDto));
+    }
+
+    @PostMapping("/notify")
+    public ResponseEntity<Order> handleNotification(
+            @RequestParam String order_id,
+            @RequestParam String payment_id,
+            @RequestParam String payhere_amount,
+            @RequestParam String status_code,
+            @RequestParam String md5sig) {
+        Order order = orderService.handlePayHereNotification(
+                order_id, payment_id, payhere_amount, status_code, md5sig);
+        return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("/initiate/{orderId}")
+    public ResponseEntity<Map<String, String>> initiatePayment(@PathVariable Long orderId) {
+        Order order = orderService.getOrderById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        return ResponseEntity.ok(orderService.initiatePayment(order));
+    }
+
+    @GetMapping("/return")
+    public ResponseEntity<String> paymentReturn() {
+        return ResponseEntity.ok("Payment Successful!");
+    }
+
+    @GetMapping("/cancel")
+    public ResponseEntity<String> paymentCancel() {
+        return ResponseEntity.ok("Payment Cancelled!");
     }
 
     @GetMapping
