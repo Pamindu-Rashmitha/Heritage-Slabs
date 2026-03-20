@@ -31,6 +31,9 @@ public class OrderService {
     @Value("${payhere.merchant.secret}")
     private String merchant_secret;
 
+    @Value("${backend_domain}")
+    private String backendDomain;
+
     @Transactional
     public Order createOrder(orderDTO orderDto) {
         Order order = modelMapper.map(orderDto, Order.class);
@@ -80,40 +83,31 @@ public class OrderService {
         }
 
         //Prepare Payhere data
+        String formattedAmount = String.format("%.2f", order.getTotalAmount());
+
         Map<String, String> result = new HashMap<>();
         result.put("merchant_id", merchant_id);
-        result.put("notify_url", "https://calcific-elfrieda-prospectively.ngrok-free.dev/api/orders/notify");
-        result.put("return_url", "https://calcific-elfrieda-prospectively.ngrok-free.dev/api/orders/return");
-        result.put("cancel_url", "https://calcific-elfrieda-prospectively.ngrok-free.dev/api/orders/cancel");
+        result.put("notify_url", backendDomain + "/api/orders/notify");
+        result.put("return_url", backendDomain + "/api/orders/return");
+        result.put("cancel_url", backendDomain + "/api/orders/cancel");
         result.put("order_id", order.getId() + "");
         result.put("items", "Heritage Slabs Order #" + order.getId());
         result.put("currency", "LKR");
-        java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
-        String formattedAmount = df.format(order.getTotalAmount());
-
         result.put("amount", formattedAmount);
 
         //Customer details
-        String fullName = order.getUser_id().getName() != null ? order.getUser_id().getName() : "Customer";
-        String firstName = fullName;
-        String lastName = "User";
-        if (fullName.contains(" ")) {
-            firstName = fullName.substring(0, fullName.indexOf(" "));
-            lastName = fullName.substring(fullName.indexOf(" ") + 1);
-        }
-
-        result.put("first_name", firstName);
-        result.put("last_name", lastName);
+        result.put("first_name", order.getUser_id().getName());
+        result.put("last_name", "");
         result.put("email", order.getUser_id().getEmail());
-        result.put("phone", "0000000000");
-        result.put("address", order.getAddress() != null ? order.getAddress() : "No Address");
-        result.put("city", "Colombo");
+        result.put("phone", "");
+        result.put("address", order.getAddress());
+        result.put("city", "");
         result.put("country", "Sri Lanka");
 
-        // Generate hash
+        // Generate hash using the same formatted amount
         String hash = generateHash(
                 merchant_id,
-                String.valueOf(order.getId()),
+                order.getId() + "",
                 formattedAmount,
                 "LKR"
         );
