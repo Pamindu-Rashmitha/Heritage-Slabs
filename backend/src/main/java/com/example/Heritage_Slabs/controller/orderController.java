@@ -4,11 +4,14 @@ import com.example.Heritage_Slabs.dto.request.orderDTO;
 import com.example.Heritage_Slabs.model.Order;
 import com.example.Heritage_Slabs.model.Status;
 import com.example.Heritage_Slabs.service.OrderService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +21,9 @@ import java.util.Map;
 public class orderController {
 
     private final OrderService orderService;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     @PostMapping
     public ResponseEntity<Order> createOrder(@Valid @RequestBody orderDTO orderDto) {
@@ -44,13 +50,13 @@ public class orderController {
     }
 
     @GetMapping("/return")
-    public ResponseEntity<String> paymentReturn() {
-        return ResponseEntity.ok("Payment Successful!");
+    public void paymentReturn(HttpServletResponse response) throws IOException {
+        response.sendRedirect(frontendUrl + "/payment/success");
     }
 
     @GetMapping("/cancel")
-    public ResponseEntity<String> paymentCancel() {
-        return ResponseEntity.ok("Payment Cancelled!");
+    public void paymentCancel(HttpServletResponse response) throws IOException {
+        response.sendRedirect(frontendUrl + "/cart");
     }
 
     @GetMapping
