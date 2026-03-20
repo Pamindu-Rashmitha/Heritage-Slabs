@@ -61,7 +61,7 @@ const OrderPage = () => {
             // 5. Clear cart and redirect
             clearCart();
             alert("Order placed and paid successfully!");
-            navigate('/');
+            navigate('/catalog');
         } catch (err) {
             console.error("Order process failed", err);
             setError("Failed to process order. Please try again.");
