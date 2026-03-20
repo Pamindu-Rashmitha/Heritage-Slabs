@@ -24,7 +24,6 @@ public class orderDTO {
     @NotNull
     private User user_id;
 
-    @NotNull
     private double totalAmount;
 
     @NotNull

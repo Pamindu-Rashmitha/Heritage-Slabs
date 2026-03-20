@@ -41,6 +41,8 @@ const VisualizerModal = ({ isOpen, onClose, productImageUrl, productName }) => {
             formData.append('room_image', roomImageFile);
             // Append the product image blob with a filename
             formData.append('product_image', productImageBlob, 'product.jpg');
+            // Send the product name so the AI can identify the exact granite type
+            formData.append('product_name', productName || 'selected granite');
 
             // Calling Python Directly 
             const response = await fetch('http://localhost:8000/genai-visualize', {

@@ -9,18 +9,22 @@ import UserManagement from './pages/admin/UserManagement';
 import Profile from './pages/admin/Profile';
 import LandingPage from './pages/LandingPage';
 
+
+
 import ProductManagement from './pages/admin/ProductManagement';
-import VehicleManagement from './pages/admin/VehicleManagement';
-import DeliveryManagement from './pages/admin/DeliveryManagement';
 import SupplierManagement from './pages/admin/SupplierManagement';
+import VehicleManagement from './pages/admin/VehicleManagement';
 import PurchaseOrderManagement from './pages/admin/PurchaseOrderManagement';
-import MaterialIntakeManagement from './pages/admin/MaterialIntakeManagement';
+import DeliveryManagement from './pages/admin/DeliveryManagement';
 import ReviewManagement from './pages/admin/ReviewManagement';
 import FeedbackManagement from './pages/admin/FeedbackManagement';
+import MaterialIntakeManagement from './pages/admin/MaterialIntakeManagement';
 import ProductCatalog from './pages/ProductCatalog';
 import OrderPage from './pages/OrderPage';
 import OrdersList from './pages/OrdersList';
 import Navbar from './components/Navbar';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
 
 // Wrapper to pass user/logout from AuthContext as props to LandingPage
 function LandingPageWrapper() {
@@ -32,21 +36,12 @@ const NavbarWrapper = () => {
     const { user } = useContext(AuthContext);
     const location = useLocation();
 
-
+    // Paths that should NOT show the global navbar
     const adminPaths = [
-        '/dashboard',
-        '/users',
-        '/profile',
-        '/products',
-        '/vehicles',
-        '/deliveries',
-        '/suppliers',
-        '/purchase-orders',
-        '/material-intakes',
-        '/admin/reviews',
-        '/admin/feedback'
+        '/dashboard', '/users', '/profile', '/products',
+        '/suppliers', '/vehicles', '/purchase-orders', '/deliveries',
+        '/admin/reviews', '/admin/feedback', '/material-intakes'
     ];
-
     const isAdminPath = adminPaths.includes(location.pathname);
 
     // Special case for orders: admins get the admin layout sidebar, so hide global navbar
@@ -72,19 +67,21 @@ function App() {
                             <Route path="/catalog" element={<ProductCatalog />} />
                             <Route path="/cart" element={<OrderPage />} />
                             <Route path="/orders" element={<OrdersList />} />
+                            <Route path="/payment/success" element={<PaymentSuccess />} />
+                            <Route path="/payment/cancel" element={<PaymentCancel />} />
 
                             {/* Protected Admin Routes */}
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/users" element={<UserManagement />} />
                             <Route path="/profile" element={<Profile />} />
-                            <Route path="/admin/reviews" element={<ReviewManagement />} />
-                            <Route path="/admin/feedback" element={<FeedbackManagement />} />
 
                             <Route path="/products" element={<ProductManagement />} />
-                            <Route path="/vehicles" element={<VehicleManagement />} />
-                            <Route path="/deliveries" element={<DeliveryManagement />} />
                             <Route path="/suppliers" element={<SupplierManagement />} />
+                            <Route path="/vehicles" element={<VehicleManagement />} />
                             <Route path="/purchase-orders" element={<PurchaseOrderManagement />} />
+                            <Route path="/deliveries" element={<DeliveryManagement />} />
+                            <Route path="/admin/reviews" element={<ReviewManagement />} />
+                            <Route path="/admin/feedback" element={<FeedbackManagement />} />
                             <Route path="/material-intakes" element={<MaterialIntakeManagement />} />
                         </Routes>
                     </div>
@@ -93,5 +90,6 @@ function App() {
         </AuthProvider>
     );
 }
+
 
 export default App;

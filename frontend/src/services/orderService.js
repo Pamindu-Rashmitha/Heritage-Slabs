@@ -11,6 +11,11 @@ const orderService = {
         return response.data;
     },
 
+    initiatePayment: async (orderId) => {
+        const response = await api.get(`/orders/initiate/${orderId}`);
+        return response.data;
+    },
+
     getAllOrders: async () => {
         const response = await api.get('/orders');
         return response.data;

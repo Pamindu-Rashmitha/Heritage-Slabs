@@ -149,7 +149,7 @@ const DeliveryManagement = () => {
                         <div className="bg-white rounded-lg shadow p-6">
                             <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
                                 <span className="inline-block w-3 h-3 rounded-full bg-purple-500"></span>
-                                Paid Orders — Ready for Dispatch
+                                Paid Orders - Ready for Dispatch
                                 <span className="ml-2 text-sm font-normal text-gray-400">({paidOrders.length})</span>
                             </h2>
                             {paidOrders.length === 0 ? (

@@ -44,7 +44,11 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/avatars/**").permitAll()
                         .requestMatchers("/product-images/**").permitAll()
-
+                        .requestMatchers("/api/orders/notify").permitAll()   
+                        .requestMatchers("/api/orders/return").permitAll()
+                        .requestMatchers("/api/orders/cancel").permitAll()
+                        .requestMatchers("/api/orders/initiate/**").permitAll()
+                        
                         // --- FIX: Added explicit "/api/products" to catch the root URL ---
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                         .requestMatchers("/api/products", "/api/products/**").hasAuthority("ROLE_ADMIN")

@@ -77,7 +77,7 @@ public class LogisticService {
     }
 
     public List<Map<String, Object>> getOrdersReadyForDispatch() {
-        List<Order> orders = orderRepository.findByStatus(Status.PAID);
+        List<Order> orders = orderRepository.findByStatus(Status.Paid);
 
         // Map to simple response format for frontend
         return orders.stream().map(order -> {
@@ -99,7 +99,7 @@ public class LogisticService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
-        if (order.getStatus() != Status.PAID) {
+        if (order.getStatus() != Status.Paid) {
             throw new RuntimeException("Order is not in PAID status. Current status: " + order.getStatus());
         }
 
@@ -125,7 +125,7 @@ public class LogisticService {
         vehicleRepository.save(vehicle);
 
         // 5. Update Order status to SHIPPED
-        order.setStatus(Status.SHIPPED);
+        order.setStatus(Status.Shipped);
         orderRepository.save(order);
 
         // 6. Save and return the delivery
@@ -148,7 +148,7 @@ public class LogisticService {
             // Also update order status to DELIVERED
             Order order = orderRepository.findById(delivery.getOrderId())
                     .orElseThrow(() -> new RuntimeException("Order not found"));
-            order.setStatus(Status.DELIVERED);
+            order.setStatus(Status.Delivered);
             orderRepository.save(order);
         }
 

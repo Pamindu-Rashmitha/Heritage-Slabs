@@ -4,12 +4,16 @@ import com.example.Heritage_Slabs.dto.request.orderDTO;
 import com.example.Heritage_Slabs.model.Order;
 import com.example.Heritage_Slabs.model.Status;
 import com.example.Heritage_Slabs.service.OrderService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/orders")
@@ -18,17 +22,41 @@ public class orderController {
 
     private final OrderService orderService;
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     @PostMapping
-    public ResponseEntity<?> createOrder(@Valid @RequestBody orderDTO orderDto) {
-        try {
-            return ResponseEntity.ok(orderService.createOrder(orderDto));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body(java.util.Map.of(
-                    "error", e.getClass().getSimpleName(),
-                    "message", e.getMessage() != null ? e.getMessage() : "Unknown error",
-                    "cause", e.getCause() != null ? e.getCause().getMessage() : "No cause"));
-        }
+    public ResponseEntity<Order> createOrder(@Valid @RequestBody orderDTO orderDto) {
+        return ResponseEntity.ok(orderService.createOrder(orderDto));
+    }
+
+    @PostMapping("/notify")
+    public ResponseEntity<Order> handleNotification(
+            @RequestParam String order_id,
+            @RequestParam String payment_id,
+            @RequestParam String payhere_amount,
+            @RequestParam String status_code,
+            @RequestParam String md5sig) {
+        Order order = orderService.handlePayHereNotification(
+                order_id, payment_id, payhere_amount, status_code, md5sig);
+        return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("/initiate/{orderId}")
+    public ResponseEntity<Map<String, String>> initiatePayment(@PathVariable Long orderId) {
+        Order order = orderService.getOrderById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        return ResponseEntity.ok(orderService.initiatePayment(order));
+    }
+
+    @GetMapping("/return")
+    public void paymentReturn(HttpServletResponse response) throws IOException {
+        response.sendRedirect(frontendUrl + "/payment/success");
+    }
+
+    @GetMapping("/cancel")
+    public void paymentCancel(HttpServletResponse response) throws IOException {
+        response.sendRedirect(frontendUrl + "/cart");
     }
 
     @GetMapping

@@ -13,18 +13,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class orderItemDTO {
 
-    @NotNull
     private Long id;
 
-    @NotNull
     private Order order_id;
 
     @NotNull
     private Product product_id;
 
-    @NotNull
     private int quantity;
 
-    @NotNull
     private double priceAtOrder;
 }
