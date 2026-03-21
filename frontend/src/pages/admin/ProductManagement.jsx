@@ -11,13 +11,10 @@ const ProductManagement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // --- NEW STATE FOR MODAL & FORM ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [editingProductId, setEditingProductId] = useState(null);
-
-    // --> NEW: State to hold backend validation errors
     const [validationErrors, setValidationErrors] = useState({});
 
     const [formData, setFormData] = useState({
@@ -58,7 +55,6 @@ const ProductManagement = () => {
         }
     };
 
-    // --- FORM HANDLERS ---
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -78,10 +74,10 @@ const ProductManagement = () => {
             stockQuantity: product.stockQuantity,
             lowStockThreshold: product.lowStockThreshold || 10,
             description: product.description || '',
-            textureUrl: product.textureUrl // <-- Add this to preserve the URL
+            textureUrl: product.textureUrl
         });
         setSelectedFile(null);
-        setValidationErrors({}); // Clear any old errors
+        setValidationErrors({});
         setIsModalOpen(true);
     };
 
@@ -92,15 +88,14 @@ const ProductManagement = () => {
             stockQuantity: '', lowStockThreshold: 10, description: ''
         });
         setSelectedFile(null);
-        setValidationErrors({}); // Clear any old errors
+        setValidationErrors({});
         setIsModalOpen(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setValidationErrors({}); // Clear errors on new submit attempt
+        setValidationErrors({});
 
-        // Image is required for NEW products, but optional when EDITING
         if (!editingProductId && !selectedFile) {
             alert("Please select a texture image.");
             return;
@@ -123,16 +118,13 @@ const ProductManagement = () => {
             let productIdToUse;
 
             if (editingProductId) {
-                // UPDATE Existing Product
                 await productService.updateProduct(editingProductId, productPayload);
                 productIdToUse = editingProductId;
             } else {
-                // CREATE New Product
                 const createdProduct = await productService.createProduct(productPayload);
                 productIdToUse = createdProduct.id;
             }
 
-            // Upload image ONLY if a new file was selected
             if (selectedFile) {
                 await productService.uploadProductImage(productIdToUse, selectedFile);
             }
@@ -142,8 +134,6 @@ const ProductManagement = () => {
 
         } catch (err) {
             console.error("Error saving product:", err);
-
-            // --> NEW: Catch Backend Validation Errors (400 Bad Request)
             if (err.response && err.response.status === 400) {
                 setValidationErrors(err.response.data);
             } else {
@@ -157,6 +147,9 @@ const ProductManagement = () => {
     if (user?.role !== 'ADMIN') {
         return <Navigate to="/dashboard" />;
     }
+
+    // ---> NEW: Calculate which products are low on stock <---
+    const lowStockProducts = products.filter(p => p.stockQuantity <= p.lowStockThreshold);
 
     return (
         <AdminLayout>
@@ -172,6 +165,31 @@ const ProductManagement = () => {
                 </div>
 
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+
+                {/* ---> NEW: Low Stock Warning Banner <--- */}
+                {!loading && lowStockProducts.length > 0 && (
+                    <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded shadow-sm">
+                        <div className="flex items-start">
+                            <div className="flex-shrink-0 mt-0.5">
+                                <span className="text-red-500 text-xl">⚠️</span>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-md font-bold text-red-800">
+                                    Action Required: {lowStockProducts.length} Granite Slab(s) are low on stock!
+                                </h3>
+                                <div className="mt-2 text-sm text-red-700">
+                                    <ul className="list-disc pl-5 space-y-1">
+                                        {lowStockProducts.map(p => (
+                                            <li key={p.id}>
+                                                <strong>{p.name}</strong> ({p.dimensions}) — Current Stock: <span className="font-bold underline">{p.stockQuantity}</span> (Threshold: {p.lowStockThreshold})
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* --- TABLE --- */}
                 {loading ? (
@@ -207,7 +225,8 @@ const ProductManagement = () => {
                                         </td>
                                         <td className="py-3 px-6 text-left font-medium">{product.price.toFixed(2)} LKR</td>
                                         <td className="py-3 px-6 text-left">
-                                            {product.lowStock ? (
+                                            {/* ---> FIXED: Now checking stockQuantity vs lowStockThreshold <--- */}
+                                            {product.stockQuantity <= product.lowStockThreshold ? (
                                                 <span className="bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-bold">Low Stock: {product.stockQuantity}</span>
                                             ) : (
                                                 <span className="bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-bold">In Stock: {product.stockQuantity}</span>
@@ -242,7 +261,6 @@ const ProductManagement = () => {
                                     <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleInputChange} className="w-full border p-2 rounded" />
                                 </div>
 
-                                {/* --> NEW: Dimensions field with dynamic error styling and error message */}
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="block text-sm font-medium mb-1">Dimensions</label>
                                     <input
