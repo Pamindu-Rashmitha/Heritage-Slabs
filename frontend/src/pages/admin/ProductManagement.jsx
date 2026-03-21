@@ -148,7 +148,6 @@ const ProductManagement = () => {
         return <Navigate to="/dashboard" />;
     }
 
-    // ---> NEW: Calculate which products are low on stock <---
     const lowStockProducts = products.filter(p => p.stockQuantity <= p.lowStockThreshold);
 
     return (
@@ -166,7 +165,6 @@ const ProductManagement = () => {
 
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
-                {/* ---> NEW: Low Stock Warning Banner <--- */}
                 {!loading && lowStockProducts.length > 0 && (
                     <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded shadow-sm">
                         <div className="flex items-start">
@@ -191,7 +189,6 @@ const ProductManagement = () => {
                     </div>
                 )}
 
-                {/* --- TABLE --- */}
                 {loading ? (
                     <p className="text-gray-600">Loading inventory...</p>
                 ) : (
@@ -225,7 +222,6 @@ const ProductManagement = () => {
                                         </td>
                                         <td className="py-3 px-6 text-left font-medium">{product.price.toFixed(2)} LKR</td>
                                         <td className="py-3 px-6 text-left">
-                                            {/* ---> FIXED: Now checking stockQuantity vs lowStockThreshold <--- */}
                                             {product.stockQuantity <= product.lowStockThreshold ? (
                                                 <span className="bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-bold">Low Stock: {product.stockQuantity}</span>
                                             ) : (
@@ -256,9 +252,23 @@ const ProductManagement = () => {
                                     <label className="block text-sm font-medium mb-1">Product Name</label>
                                     <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="w-full border p-2 rounded" placeholder="e.g., Galaxy Black" />
                                 </div>
+
+                                {/* ---> UPDATED: Price field with min="0" and validation check <--- */}
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="block text-sm font-medium mb-1">Price per SqFt (LKR)</label>
-                                    <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleInputChange} className="w-full border p-2 rounded" />
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        name="price"
+                                        required
+                                        value={formData.price}
+                                        onChange={handleInputChange}
+                                        className={`w-full border p-2 rounded focus:outline-none ${validationErrors.price ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'focus:ring-1 focus:ring-blue-500'}`}
+                                    />
+                                    {validationErrors.price && (
+                                        <p className="text-red-500 text-xs mt-1 font-medium">⚠️ {validationErrors.price}</p>
+                                    )}
                                 </div>
 
                                 <div className="col-span-2 sm:col-span-1">
@@ -273,9 +283,7 @@ const ProductManagement = () => {
                                         placeholder="e.g., 120 * 60"
                                     />
                                     {validationErrors.dimensions && (
-                                        <p className="text-red-500 text-xs mt-1 font-medium">
-                                            ⚠️ {validationErrors.dimensions}
-                                        </p>
+                                        <p className="text-red-500 text-xs mt-1 font-medium">⚠️ {validationErrors.dimensions}</p>
                                     )}
                                 </div>
 
@@ -287,14 +295,41 @@ const ProductManagement = () => {
                                         <option value="Commercial">Commercial</option>
                                     </select>
                                 </div>
+
+                                {/* ---> UPDATED: Stock Quantity with min="0" and error handling <--- */}
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="block text-sm font-medium mb-1">Stock Quantity</label>
-                                    <input type="number" name="stockQuantity" required value={formData.stockQuantity} onChange={handleInputChange} className="w-full border p-2 rounded" />
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        name="stockQuantity"
+                                        required
+                                        value={formData.stockQuantity}
+                                        onChange={handleInputChange}
+                                        className={`w-full border p-2 rounded focus:outline-none ${validationErrors.stockQuantity ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'focus:ring-1 focus:ring-blue-500'}`}
+                                    />
+                                    {validationErrors.stockQuantity && (
+                                        <p className="text-red-500 text-xs mt-1 font-medium">⚠️ {validationErrors.stockQuantity}</p>
+                                    )}
                                 </div>
+
+                                {/* ---> UPDATED: Low Stock Alert with min="0" and error handling <--- */}
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="block text-sm font-medium mb-1">Low Stock Alert Threshold</label>
-                                    <input type="number" name="lowStockThreshold" required value={formData.lowStockThreshold} onChange={handleInputChange} className="w-full border p-2 rounded" />
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        name="lowStockThreshold"
+                                        required
+                                        value={formData.lowStockThreshold}
+                                        onChange={handleInputChange}
+                                        className={`w-full border p-2 rounded focus:outline-none ${validationErrors.lowStockThreshold ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'focus:ring-1 focus:ring-blue-500'}`}
+                                    />
+                                    {validationErrors.lowStockThreshold && (
+                                        <p className="text-red-500 text-xs mt-1 font-medium">⚠️ {validationErrors.lowStockThreshold}</p>
+                                    )}
                                 </div>
+
                                 <div className="col-span-2">
                                     <label className="block text-sm font-medium mb-1">
                                         Texture Image {editingProductId ? '(Leave blank to keep current)' : '(Critical for AI)'}
