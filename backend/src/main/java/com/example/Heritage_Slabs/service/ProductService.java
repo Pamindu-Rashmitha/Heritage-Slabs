@@ -6,12 +6,9 @@ import com.example.Heritage_Slabs.dto.response.ReviewResponseDTO;
 import com.example.Heritage_Slabs.model.Product;
 import com.example.Heritage_Slabs.repository.ProductRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.nio.file.*;
-import java.util.UUID;
 
 @Service
 public class ProductService {
@@ -55,8 +52,7 @@ public class ProductService {
         return mapToResponseDTO(updatedProduct);
     }
 
-    // Add this method inside your ProductService class
-
+    // 5. Upload Product Image
     public ProductResponseDTO uploadProductImage(Long id, org.springframework.web.multipart.MultipartFile file) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
@@ -88,7 +84,7 @@ public class ProductService {
         }
     }
 
-    // 5. Delete a Product
+    // 6. Delete a Product
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
             throw new RuntimeException("Product not found with id: " + id);
@@ -96,7 +92,7 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    // 6. Get Low Stock Alerts (Requirement specified in the proposal)
+    // 7. Get Low Stock Alerts
     public List<ProductResponseDTO> getLowStockAlerts() {
         return productRepository.findProductsWithLowStock().stream()
                 .map(this::mapToResponseDTO)
@@ -108,7 +104,6 @@ public class ProductService {
     private void updateProductFields(Product product, ProductRequestDTO dto) {
         product.setName(dto.getName());
         product.setPrice(dto.getPrice());
-        product.setDimensions(dto.getDimensions());
         product.setGrade(dto.getGrade());
         product.setStockQuantity(dto.getStockQuantity());
         product.setDescription(dto.getDescription());
@@ -117,6 +112,20 @@ public class ProductService {
         if (dto.getLowStockThreshold() != null) {
             product.setLowStockThreshold(dto.getLowStockThreshold());
         }
+
+        // --- NEW DIMENSION PARSING LOGIC ---
+        if (dto.getDimensions() != null && dto.getDimensions().contains("*")) {
+            // 1. Remove all spaces from the string (e.g., " 120 * 60 " becomes "120*60")
+            String cleanDimensions = dto.getDimensions().replaceAll("\\s+", "");
+
+            // 2. Split the string at the asterisk
+            String[] parts = cleanDimensions.split("\\*");
+
+            // 3. Convert string numbers to Integers and save to entity
+            product.setLength(Integer.parseInt(parts[0]));
+            product.setWidth(Integer.parseInt(parts[1]));
+        }
+        // -----------------------------------
     }
 
     private ProductResponseDTO mapToResponseDTO(Product product) {
@@ -136,11 +145,16 @@ public class ProductService {
                 })
                 .collect(Collectors.toList());
 
+        // --- NEW DIMENSION FORMATTING LOGIC ---
+        // Combine length and width back into a string for the frontend response
+        String formattedDimensions = product.getLength() + " * " + product.getWidth();
+        // --------------------------------------
+
         return new ProductResponseDTO(
                 product.getId(),
                 product.getName(),
                 product.getPrice(),
-                product.getDimensions(),
+                formattedDimensions, // Using the reconstructed string here
                 product.getGrade(),
                 product.getStockQuantity(),
                 product.getLowStockThreshold(),
