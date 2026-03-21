@@ -18,8 +18,13 @@ public class Product {
     @Column(nullable = false)
     private Double price;
 
-    @Column(nullable = false)
-    private String dimensions;
+    // --- REPLACED dimensions string WITH length AND width integers ---
+    @Column(name = "length_cm", nullable = false)
+    private Integer length;
+
+    @Column(name = "width_cm", nullable = false)
+    private Integer width;
+    // ----------------------------------------------------------------
 
     @Column(nullable = false)
     private String grade;
@@ -36,26 +41,29 @@ public class Product {
     @Column(name = "texture_url")
     private String textureUrl;
 
-    //  Reviews (One-to-Many)
+    // Reviews (One-to-Many)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
 
-    //Average Rating
+    // Average Rating
     @Column(nullable = false)
     private Double averageRating = 0.0;
 
     // Constructors
     public Product() {}
 
-    public Product(String name, Double price, String dimensions, String grade, Integer stockQuantity, String textureUrl) {
+    // Updated constructor to accept length and width
+    public Product(String name, Double price, Integer length, Integer width, String grade, Integer stockQuantity, String textureUrl) {
         this.name = name;
         this.price = price;
-        this.dimensions = dimensions;
+        this.length = length;
+        this.width = width;
         this.grade = grade;
         this.stockQuantity = stockQuantity;
         this.textureUrl = textureUrl;
     }
 
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -65,8 +73,13 @@ public class Product {
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }
 
-    public String getDimensions() { return dimensions; }
-    public void setDimensions(String dimensions) { this.dimensions = dimensions; }
+    // --- NEW Getters and Setters for length and width ---
+    public Integer getLength() { return length; }
+    public void setLength(Integer length) { this.length = length; }
+
+    public Integer getWidth() { return width; }
+    public void setWidth(Integer width) { this.width = width; }
+    // ----------------------------------------------------
 
     public String getGrade() { return grade; }
     public void setGrade(String grade) { this.grade = grade; }
@@ -82,7 +95,6 @@ public class Product {
 
     public String getTextureUrl() { return textureUrl; }
     public void setTextureUrl(String textureUrl) { this.textureUrl = textureUrl; }
-
 
     public List<Review> getReviews() { return reviews; }
     public void setReviews(List<Review> reviews) { this.reviews = reviews; }
