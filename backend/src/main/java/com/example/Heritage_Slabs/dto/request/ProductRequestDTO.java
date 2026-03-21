@@ -1,13 +1,18 @@
 package com.example.Heritage_Slabs.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Min;
 
 public class ProductRequestDTO {
 
     @NotBlank(message = "Product name is required")
     private String name;
 
+    // --> NEW: Prevent negative prices and ensure it's not null
+    @NotNull(message = "Price is required")
+    @Min(value = 0, message = "Price cannot be negative")
     private Double price;
 
     /**
@@ -20,8 +25,16 @@ public class ProductRequestDTO {
     private String dimensions;
 
     private String grade;
+
+    // --> NEW: Prevent negative stock quantities and ensure it's not null
+    @NotNull(message = "Stock quantity is required")
+    @Min(value = 0, message = "Stock quantity cannot be negative")
     private Integer stockQuantity;
+
+    // --> NEW: Prevent negative thresholds
+    @Min(value = 0, message = "Low stock threshold cannot be negative")
     private Integer lowStockThreshold;
+
     private String description;
     private String textureUrl;
 
