@@ -16,6 +16,10 @@ const ProductManagement = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [editingProductId, setEditingProductId] = useState(null);
+
+    // --> NEW: State to hold backend validation errors
+    const [validationErrors, setValidationErrors] = useState({});
+
     const [formData, setFormData] = useState({
         name: '',
         price: '',
@@ -77,6 +81,7 @@ const ProductManagement = () => {
             textureUrl: product.textureUrl // <-- Add this to preserve the URL
         });
         setSelectedFile(null);
+        setValidationErrors({}); // Clear any old errors
         setIsModalOpen(true);
     };
 
@@ -87,11 +92,13 @@ const ProductManagement = () => {
             stockQuantity: '', lowStockThreshold: 10, description: ''
         });
         setSelectedFile(null);
+        setValidationErrors({}); // Clear any old errors
         setIsModalOpen(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setValidationErrors({}); // Clear errors on new submit attempt
 
         // Image is required for NEW products, but optional when EDITING
         if (!editingProductId && !selectedFile) {
@@ -110,7 +117,7 @@ const ProductManagement = () => {
                 stockQuantity: parseInt(formData.stockQuantity, 10),
                 lowStockThreshold: parseInt(formData.lowStockThreshold, 10),
                 description: formData.description,
-                textureUrl: formData.textureUrl // <-- Send it back to the backend
+                textureUrl: formData.textureUrl
             };
 
             let productIdToUse;
@@ -135,7 +142,13 @@ const ProductManagement = () => {
 
         } catch (err) {
             console.error("Error saving product:", err);
-            alert('Failed to save product. Check the console for more details.');
+
+            // --> NEW: Catch Backend Validation Errors (400 Bad Request)
+            if (err.response && err.response.status === 400) {
+                setValidationErrors(err.response.data);
+            } else {
+                alert('Failed to save product. Check the console for more details.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -201,7 +214,6 @@ const ProductManagement = () => {
                                             )}
                                         </td>
                                         <td className="py-3 px-6 text-center">
-                                            {/* Edit Button added here */}
                                             <button onClick={() => handleEdit(product)} className="text-blue-500 hover:text-blue-700 font-medium mr-4">Edit</button>
                                             <button onClick={() => handleDelete(product.id)} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
                                         </td>
@@ -218,7 +230,6 @@ const ProductManagement = () => {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 overflow-y-auto max-h-[90vh]">
-                        {/* Dynamic Title based on whether we are editing or adding */}
                         <h2 className="text-2xl font-bold mb-4">{editingProductId ? 'Edit Granite Slab' : 'Add Granite Slab'}</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="grid grid-cols-2 gap-4">
@@ -230,10 +241,26 @@ const ProductManagement = () => {
                                     <label className="block text-sm font-medium mb-1">Price per SqFt (LKR)</label>
                                     <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleInputChange} className="w-full border p-2 rounded" />
                                 </div>
+
+                                {/* --> NEW: Dimensions field with dynamic error styling and error message */}
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="block text-sm font-medium mb-1">Dimensions</label>
-                                    <input type="text" name="dimensions" required value={formData.dimensions} onChange={handleInputChange} className="w-full border p-2 rounded" placeholder="e.g., 10x5 ft" />
+                                    <input
+                                        type="text"
+                                        name="dimensions"
+                                        required
+                                        value={formData.dimensions}
+                                        onChange={handleInputChange}
+                                        className={`w-full border p-2 rounded focus:outline-none ${validationErrors.dimensions ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'focus:ring-1 focus:ring-blue-500'}`}
+                                        placeholder="e.g., 120 * 60"
+                                    />
+                                    {validationErrors.dimensions && (
+                                        <p className="text-red-500 text-xs mt-1 font-medium">
+                                            ⚠️ {validationErrors.dimensions}
+                                        </p>
+                                    )}
                                 </div>
+
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="block text-sm font-medium mb-1">Grade</label>
                                     <select name="grade" value={formData.grade} onChange={handleInputChange} className="w-full border p-2 rounded">
@@ -251,7 +278,6 @@ const ProductManagement = () => {
                                     <input type="number" name="lowStockThreshold" required value={formData.lowStockThreshold} onChange={handleInputChange} className="w-full border p-2 rounded" />
                                 </div>
                                 <div className="col-span-2">
-                                    {/* Dynamic Label and Required tag for Image */}
                                     <label className="block text-sm font-medium mb-1">
                                         Texture Image {editingProductId ? '(Leave blank to keep current)' : '(Critical for AI)'}
                                     </label>
