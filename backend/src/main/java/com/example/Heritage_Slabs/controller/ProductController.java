@@ -3,6 +3,7 @@ package com.example.Heritage_Slabs.controller;
 import com.example.Heritage_Slabs.dto.request.ProductRequestDTO;
 import com.example.Heritage_Slabs.dto.response.ProductResponseDTO;
 import com.example.Heritage_Slabs.service.ProductService;
+import jakarta.validation.Valid; // <-- NEW IMPORT ADDED HERE
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +44,8 @@ public class ProductController {
 
     // Add a new Granite Slab/Product
     @PostMapping
-    public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody ProductRequestDTO requestDTO) {
+    public ResponseEntity<ProductResponseDTO> createProduct(
+            @Valid @RequestBody ProductRequestDTO requestDTO) { // <-- @Valid ADDED HERE
         ProductResponseDTO createdProduct = productService.createProduct(requestDTO);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
@@ -52,7 +54,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long id,
-            @RequestBody ProductRequestDTO requestDTO) {
+            @Valid @RequestBody ProductRequestDTO requestDTO) { // <-- @Valid ADDED HERE
         return ResponseEntity.ok(productService.updateProduct(id, requestDTO));
     }
 
@@ -63,8 +65,6 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    // Add this inside your ProductController class
-
     // Upload an image for a specific product
     @PostMapping("/{id}/image")
     public ResponseEntity<ProductResponseDTO> uploadProductImage(
@@ -74,5 +74,4 @@ public class ProductController {
         ProductResponseDTO updatedProduct = productService.uploadProductImage(id, file);
         return ResponseEntity.ok(updatedProduct);
     }
-
 }

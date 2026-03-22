@@ -1,16 +1,45 @@
 package com.example.Heritage_Slabs.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Min;
+
 public class ProductRequestDTO {
+
+    @NotBlank(message = "Product name is required")
     private String name;
+
+    // --> NEW: Prevent negative prices and ensure it's not null
+    @NotNull(message = "Price is required")
+    @Min(value = 0, message = "Price cannot be negative")
     private Double price;
+
+    /**
+     * Regex ensures dimensions are strictly numbers separated by an asterisk.
+     * Spaces around the asterisk are allowed and handled.
+     */
+    @NotBlank(message = "Dimensions cannot be blank")
+    @Pattern(regexp = "^\\s*\\d+\\s*\\*\\s*\\d+\\s*$",
+            message = "Dimensions must be in the format 'length * width' using numbers (e.g., '120 * 60')")
     private String dimensions;
+
     private String grade;
+
+    // --> NEW: Prevent negative stock quantities and ensure it's not null
+    @NotNull(message = "Stock quantity is required")
+    @Min(value = 0, message = "Stock quantity cannot be negative")
     private Integer stockQuantity;
+
+    // --> NEW: Prevent negative thresholds
+    @Min(value = 0, message = "Low stock threshold cannot be negative")
     private Integer lowStockThreshold;
+
     private String description;
     private String textureUrl;
 
-    // Getters and Setters
+    // --- Getters and Setters ---
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
