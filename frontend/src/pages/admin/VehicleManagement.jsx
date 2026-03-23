@@ -111,8 +111,18 @@ const VehicleManagement = () => {
             setEditingId(null);
             await loadVehicles();
         } catch (err) {
-            const msg = err.response?.data?.message || err.response?.data || 'Operation failed. Please try again.';
-            setError(typeof msg === 'string' ? msg : 'Operation failed.');
+            const data = err.response?.data;
+            let msg = 'Operation failed. Please try again.';
+            if (data) {
+                if (typeof data === 'string') {
+                    msg = data;
+                } else if (data.message) {
+                    msg = data.message;
+                } else if (typeof data === 'object') {
+                    msg = Object.values(data).join(', ');
+                }
+            }
+            setError(msg);
         } finally {
             setIsSubmitting(false);
         }
@@ -229,6 +239,8 @@ const VehicleManagement = () => {
                                         type="text"
                                         name="licensePlate"
                                         required
+                                        pattern="^[A-Za-z]{2,3}-\d{4}$"
+                                        title="license plate format invalid"
                                         value={formData.licensePlate}
                                         onChange={handleInputChange}
                                         className="w-full border p-2 rounded"
@@ -258,11 +270,12 @@ const VehicleManagement = () => {
                                         type="number"
                                         name="capacity"
                                         required
-                                        min="1"
+                                        min="100"
+                                        max="3500"
                                         value={formData.capacity}
                                         onChange={handleInputChange}
                                         className="w-full border p-2 rounded"
-                                        placeholder="e.g., 10"
+                                        placeholder="e.g., 3500"
                                     />
                                 </div>
 

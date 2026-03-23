@@ -48,7 +48,7 @@ public class LogisticService {
     @Transactional
     public Vehicle createVehicle(Vehicle vehicle) {
         if (vehicleRepository.existsByLicensePlate(vehicle.getLicensePlate())) {
-            throw new RuntimeException("Vehicle with license plate " + vehicle.getLicensePlate() + " already exists");
+            throw new IllegalArgumentException("License plate already exists");
         }
         vehicle.setStatus(VehicleStatus.AVAILABLE);
         return vehicleRepository.save(vehicle);
@@ -57,6 +57,10 @@ public class LogisticService {
     @Transactional
     public Vehicle updateVehicle(Long id, Vehicle vehicleDetails) {
         Vehicle vehicle = getVehicleById(id);
+        if (!vehicle.getLicensePlate().equals(vehicleDetails.getLicensePlate()) &&
+            vehicleRepository.existsByLicensePlate(vehicleDetails.getLicensePlate())) {
+            throw new IllegalArgumentException("License plate already exists");
+        }
         vehicle.setLicensePlate(vehicleDetails.getLicensePlate());
         vehicle.setType(vehicleDetails.getType());
         vehicle.setCapacity(vehicleDetails.getCapacity());
