@@ -130,6 +130,7 @@ async def genai_visualize(
             number_of_images=1,
             aspect_ratio="1:1"
         )
+        
         generated_image = images[0]
         img_byte_arr = io.BytesIO()
         generated_image._pil_image.save(img_byte_arr, format='JPEG', quality=95)

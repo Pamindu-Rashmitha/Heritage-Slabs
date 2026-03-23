@@ -11,6 +11,8 @@ import com.example.Heritage_Slabs.model.Delivery;
 import com.example.Heritage_Slabs.model.DeliveryStatus;
 import com.example.Heritage_Slabs.model.Vehicle;
 import com.example.Heritage_Slabs.service.LogisticService;
+import com.example.Heritage_Slabs.dto.request.DeliveryAssignRequestDTO;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/deliveries")
@@ -35,11 +37,11 @@ public class DeliveryController {
     }
 
     @PostMapping("/assign")
-    public ResponseEntity<?> assignVehicle(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> assignVehicle(@Valid @RequestBody DeliveryAssignRequestDTO request) {
         try {
-            Long orderId = Long.valueOf(request.get("orderId").toString());
-            Long vehicleId = Long.valueOf(request.get("vehicleId").toString());
-            String driverName = (String) request.get("driverName");
+            Long orderId = request.getOrderId();
+            Long vehicleId = request.getVehicleId();
+            String driverName = request.getDriverName();
 
             Delivery delivery = logisticService.assignVehicle(orderId, vehicleId, driverName);
             return ResponseEntity.ok(delivery);

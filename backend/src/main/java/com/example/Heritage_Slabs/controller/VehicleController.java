@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import com.example.Heritage_Slabs.model.Vehicle;
 import com.example.Heritage_Slabs.model.VehicleStatus;
 import com.example.Heritage_Slabs.service.LogisticService;
+import com.example.Heritage_Slabs.dto.request.VehicleRequestDTO;
+import jakarta.validation.Valid;
+
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vehicles")
@@ -33,22 +35,25 @@ public class VehicleController {
     }
 
     @PostMapping
-    public ResponseEntity<Vehicle> createVehicle(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Vehicle> createVehicle(@Valid @RequestBody VehicleRequestDTO request) {
         Vehicle vehicle = new Vehicle();
-        vehicle.setLicensePlate((String) request.get("licensePlate"));
-        vehicle.setType((String) request.get("type"));
-        vehicle.setCapacity(Integer.valueOf(request.get("capacity").toString()));
+        vehicle.setLicensePlate(request.getLicensePlate());
+        vehicle.setType(request.getType());
+        vehicle.setCapacity(request.getCapacity());
+        if (request.getStatus() != null) {
+            vehicle.setStatus(VehicleStatus.valueOf(request.getStatus()));
+        }
         return ResponseEntity.ok(logisticService.createVehicle(vehicle));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Vehicle> updateVehicle(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<Vehicle> updateVehicle(@PathVariable Long id, @Valid @RequestBody VehicleRequestDTO request) {
         Vehicle vehicle = new Vehicle();
-        vehicle.setLicensePlate((String) request.get("licensePlate"));
-        vehicle.setType((String) request.get("type"));
-        vehicle.setCapacity(Integer.valueOf(request.get("capacity").toString()));
-        if (request.get("status") != null) {
-            vehicle.setStatus(VehicleStatus.valueOf((String) request.get("status")));
+        vehicle.setLicensePlate(request.getLicensePlate());
+        vehicle.setType(request.getType());
+        vehicle.setCapacity(request.getCapacity());
+        if (request.getStatus() != null) {
+            vehicle.setStatus(VehicleStatus.valueOf(request.getStatus()));
         }
         return ResponseEntity.ok(logisticService.updateVehicle(id, vehicle));
     }
