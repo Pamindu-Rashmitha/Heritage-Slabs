@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -78,6 +80,21 @@ public class orderController {
     public ResponseEntity<Order> updateStatus(@PathVariable Long id, @RequestParam Status status) {
         try {
             return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{id}/invoice")
+    public ResponseEntity<byte[]> getInvoice(@PathVariable Long id) {
+        try {
+            byte[] pdfBytes = orderService.generateInvoice(id);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Invoice_HS-" + id + ".pdf");
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

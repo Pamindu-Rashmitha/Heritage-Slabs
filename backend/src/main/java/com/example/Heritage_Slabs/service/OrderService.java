@@ -17,6 +17,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import java.io.ByteArrayOutputStream;
+import com.lowagie.text.Document;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -163,6 +174,94 @@ public class OrderService {
         }
 
         return orderRepository.save(order);
+    }
+
+    public byte[] generateInvoice(Long orderId) {
+        Order order = getOrderById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        
+        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.A4);
+            PdfWriter.getInstance(document, baos);
+            document.open();
+
+            // Font configurations
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20);
+            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
+            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 11);
+
+            // Invoice Title
+            Paragraph title = new Paragraph("PAYMENT INVOICE", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            // Order Details
+            document.add(new Paragraph("Order ID: #HS-" + String.format("%05d", order.getId()), headerFont));
+            document.add(new Paragraph("Date: " + order.getDate().toString(), normalFont));
+            document.add(new Paragraph("Status: " + order.getStatus().name(), normalFont));
+            document.add(new Paragraph("Customer Email: " + (order.getUser_id() != null ? order.getUser_id().getEmail() : "N/A"), normalFont));
+            document.add(new Paragraph("Shipping Address: " + order.getAddress(), normalFont));
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph(" "));
+
+            // Items Table
+            if (!items.isEmpty()) {
+                PdfPTable table = new PdfPTable(4);
+                table.setWidthPercentage(100);
+                table.setSpacingBefore(10f);
+                table.setSpacingAfter(10f);
+
+                // Table Header
+                String[] headers = {"Product", "Quantity", "Unit Price (LKR)", "Total (LKR)"};
+                for (String headerTitle : headers) {
+                    PdfPCell header = new PdfPCell(new Paragraph(headerTitle, headerFont));
+                    header.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    header.setPadding(8);
+                    table.addCell(header);
+                }
+
+                // Table Rows
+                for (OrderItem item : items) {
+                    String productName = item.getProduct_id() != null ? item.getProduct_id().getName() : "Product";
+                    table.addCell(new PdfPCell(new Paragraph(productName, normalFont)));
+                    
+                    PdfPCell qtyCell = new PdfPCell(new Paragraph(String.valueOf(item.getQuantity()), normalFont));
+                    qtyCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    table.addCell(qtyCell);
+                    
+                    PdfPCell priceCell = new PdfPCell(new Paragraph(String.format("%.2f", item.getPriceAtOrder()), normalFont));
+                    priceCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    table.addCell(priceCell);
+                    
+                    PdfPCell totalCell = new PdfPCell(new Paragraph(String.format("%.2f", item.getQuantity() * item.getPriceAtOrder()), normalFont));
+                    totalCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    table.addCell(totalCell);
+                }
+                document.add(table);
+            } else {
+                document.add(new Paragraph("No items found for this order.", normalFont));
+            }
+
+            // Total Amount
+            Paragraph total = new Paragraph("Grand Total: LKR " + String.format("%.2f", order.getTotalAmount()), headerFont);
+            total.setAlignment(Element.ALIGN_RIGHT);
+            total.setSpacingBefore(20);
+            document.add(total);
+
+            // Footer note
+            Paragraph footer = new Paragraph("Thank you for choosing Heritage Slabs!", FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 10));
+            footer.setAlignment(Element.ALIGN_CENTER);
+            footer.setSpacingBefore(30);
+            document.add(footer);
+
+            document.close();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating invoice PDF", e);
+        }
     }
 
 }

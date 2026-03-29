@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import orderService from '../services/orderService';
-import { ShoppingBag, ChevronRight, Package, Calendar, Clock, MapPin, Truck } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Package, Calendar, Clock, MapPin, Truck, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../components/layout/AdminLayout';
 
@@ -44,6 +44,15 @@ const OrdersList = () => {
             case 'pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
             case 'shipped': return 'bg-blue-100 text-blue-700 border-blue-200';
             default: return 'bg-gray-100 text-gray-700 border-gray-200';
+        }
+    };
+
+    const handleDownloadInvoice = async (orderId) => {
+        try {
+            await orderService.downloadInvoice(orderId);
+        } catch (err) {
+            console.error("Failed to download invoice", err);
+            alert("Sorry, there was an issue downloading the invoice. Please try again later.");
         }
     };
 
@@ -163,6 +172,16 @@ const OrdersList = () => {
                                         Premium slabs and architectural materials curated for your project's specific requirements.
                                     </p>
                                 </div>
+                            </div>
+
+                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                                <button
+                                    onClick={() => handleDownloadInvoice(order.id)}
+                                    className="inline-flex items-center gap-2 text-gray-700 hover:text-blue-600 bg-white border border-gray-200 hover:border-blue-200 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors shadow-sm"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    Download Invoice
+                                </button>
                             </div>
                         </div>
                     ))}
