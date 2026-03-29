@@ -8,6 +8,7 @@ export default function UserManagement() {
     const { user: currentUser } = useContext(AuthContext); // Get the logged-in user
 
     const [users, setUsers] = useState([]);
+    const [adminLogs, setAdminLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -18,8 +19,12 @@ export default function UserManagement() {
 
     const fetchUsers = async () => {
         try {
-            const response = await api.get('/users');
-            setUsers(response.data);
+            const [usersRes, logsRes] = await Promise.all([
+                api.get('/users'),
+                api.get('/users/admin-logs')
+            ]);
+            setUsers(usersRes.data);
+            setAdminLogs(logsRes.data);
             setLoading(false);
         } catch (err) {
             console.error("Error fetching users:", err);
@@ -91,48 +96,78 @@ export default function UserManagement() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                            <tr className="bg-gray-50 border-y">
-                                <th className="px-6 py-4 text-sm font-medium text-gray-500">Name</th>
-                                <th className="px-6 py-4 text-sm font-medium text-gray-500">Email</th>
-                                <th className="px-6 py-4 text-sm font-medium text-gray-500">Role</th>
-                                <th className="px-6 py-4 text-sm font-medium text-right text-gray-500">Actions</th>
-                            </tr>
+                                <tr className="bg-gray-50 border-y">
+                                    <th className="px-6 py-4 text-sm font-medium text-gray-500">Name</th>
+                                    <th className="px-6 py-4 text-sm font-medium text-gray-500">Email</th>
+                                    <th className="px-6 py-4 text-sm font-medium text-gray-500">Role</th>
+                                    <th className="px-6 py-4 text-sm font-medium text-right text-gray-500">Actions</th>
+                                </tr>
                             </thead>
                             <tbody className="divide-y">
-                            {users.map((user, index) => (
-                                <tr key={index} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.name}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
-                                    <td className="px-6 py-4 text-sm">
-                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                                user.role === 'ADMIN'
-                                                    ? 'bg-purple-100 text-purple-800'
-                                                    : 'bg-blue-100 text-blue-800'
-                                            }`}>
+                                {users.map((user, index) => (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.name}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
+                                        <td className="px-6 py-4 text-sm">
+                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'ADMIN'
+                                                ? 'bg-purple-100 text-purple-800'
+                                                : 'bg-blue-100 text-blue-800'
+                                                }`}>
                                                 {user.role}
                                             </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-right">
-                                        {/* Updated Edit Button to trigger modal */}
-                                        <button
-                                            onClick={() => openEditModal(user)}
-                                            className="mr-3 text-blue-600 hover:underline"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(user.email)}
-                                            className="text-red-600 hover:underline"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-right">
+                                            {/* Updated Edit Button to trigger modal */}
+                                            <button
+                                                onClick={() => openEditModal(user)}
+                                                className="mr-3 text-blue-600 hover:underline"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(user.email)}
+                                                className="text-red-600 hover:underline"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 )}
+
+                {/* Admin Audit Trail */}
+                <div className="mt-10 border-t pt-8">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">Admin Authentication Logs</h3>
+                    {adminLogs.length === 0 ? (
+                        <p className="p-4 bg-gray-50 text-gray-500 italic rounded">No admin logins recorded yet.</p>
+                    ) : (
+                        <div className="overflow-x-auto bg-gray-50 rounded-lg shadow-sm border">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-100 border-b">
+                                        <th className="px-6 py-3 text-sm font-bold text-gray-600">Record ID</th>
+                                        <th className="px-6 py-3 text-sm font-bold text-gray-600">Admin Email</th>
+                                        <th className="px-6 py-3 text-sm font-bold text-gray-600">Login Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {adminLogs.map(log => (
+                                        <tr key={log.id} className="hover:bg-white transition-colors duration-150">
+                                            <td className="px-6 py-3 text-sm text-gray-500 font-mono">#{log.id}</td>
+                                            <td className="px-6 py-3 text-sm font-semibold text-gray-800">{log.adminEmail}</td>
+                                            <td className="px-6 py-3 text-sm text-gray-600">
+                                                {new Date(log.loginTime).toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* EDIT ROLE MODAL POP-UP */}
@@ -140,7 +175,7 @@ export default function UserManagement() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-xl">
                         <h3 className="mb-4 text-lg font-bold text-gray-800">Change User Role</h3>
-                        <p className="mb-4 text-sm text-gray-600">Updating role for: <br/><span className="font-semibold">{selectedEmail}</span></p>
+                        <p className="mb-4 text-sm text-gray-600">Updating role for: <br /><span className="font-semibold">{selectedEmail}</span></p>
 
                         <div className="mb-6">
                             <label className="block mb-2 text-sm font-medium text-gray-700">Select Role</label>

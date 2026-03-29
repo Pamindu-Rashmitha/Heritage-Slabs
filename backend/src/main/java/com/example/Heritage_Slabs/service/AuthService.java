@@ -5,6 +5,8 @@ import com.example.Heritage_Slabs.dto.request.LoginRequest;
 import com.example.Heritage_Slabs.dto.request.RegisterRequest;
 import com.example.Heritage_Slabs.model.Role;
 import com.example.Heritage_Slabs.model.User;
+import com.example.Heritage_Slabs.model.AdminLog;
+import com.example.Heritage_Slabs.repository.AdminLogRepository;
 import com.example.Heritage_Slabs.repository.UserRepository;
 import com.example.Heritage_Slabs.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +21,15 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AdminLogRepository adminLogRepository;
 
     @Autowired
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService,
+            AdminLogRepository adminLogRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.adminLogRepository = adminLogRepository;
     }
 
     public String register(RegisterRequest request) {
@@ -52,6 +57,12 @@ public class AuthService {
         }
 
         String token = jwtService.generateToken(user);
+
+        // Log Admin Authentication
+        if (user.getRole() == Role.ADMIN) {
+            AdminLog log = new AdminLog(user.getEmail(), java.time.LocalDateTime.now());
+            adminLogRepository.save(log);
+        }
 
         return new AuthResponseDTO(token, user.getRole().name(), user.getName(), user.getId());
     }

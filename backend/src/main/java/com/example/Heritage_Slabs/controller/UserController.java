@@ -5,6 +5,7 @@ import com.example.Heritage_Slabs.dto.response.UserProfileDTO;
 import java.util.List;
 import com.example.Heritage_Slabs.dto.request.ChangePasswordRequest;
 import com.example.Heritage_Slabs.model.User;
+import com.example.Heritage_Slabs.model.AdminLog;
 import com.example.Heritage_Slabs.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,8 @@ public class UserController {
 
     // Endpoint to change a user's role
     @PutMapping("/{email}/role")
-    public ResponseEntity<?> updateUserRole(@PathVariable String email, @RequestBody java.util.Map<String, String> request) {
+    public ResponseEntity<?> updateUserRole(@PathVariable String email,
+            @RequestBody java.util.Map<String, String> request) {
         try {
             userService.updateUserRole(email, request.get("role"));
             return ResponseEntity.ok("User role updated successfully!");
@@ -55,7 +57,8 @@ public class UserController {
 
     // Endpoint to update the user's name
     @PutMapping("/{email}/profile")
-    public ResponseEntity<?> updateProfile(@PathVariable String email, @RequestBody java.util.Map<String, String> requestBody) {
+    public ResponseEntity<?> updateProfile(@PathVariable String email,
+            @RequestBody java.util.Map<String, String> requestBody) {
         try {
             // Grab the "name" field from the JSON body sent by React
             String newName = requestBody.get("name");
@@ -69,7 +72,8 @@ public class UserController {
 
     // Endpoint to change the password
     @PutMapping("/{email}/password")
-    public ResponseEntity<String> changePassword(@PathVariable String email, @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<String> changePassword(@PathVariable String email,
+            @RequestBody ChangePasswordRequest request) {
         try {
             String response = userService.changePassword(email, request);
             if (response.startsWith("Error")) {
@@ -86,6 +90,13 @@ public class UserController {
     public ResponseEntity<List<UserProfileDTO>> getAllUsers() {
         List<UserProfileDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
+    }
+
+    // Endpoint to get admin authentication logs
+    @GetMapping("/admin-logs")
+    public ResponseEntity<List<AdminLog>> getAdminLogs() {
+        List<AdminLog> logs = userService.getAdminLogs();
+        return ResponseEntity.ok(logs);
     }
 
     // Endpoint to delete a user

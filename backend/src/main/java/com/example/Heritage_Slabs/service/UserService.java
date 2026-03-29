@@ -10,6 +10,8 @@ import com.example.Heritage_Slabs.dto.response.UserProfileDTO;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.example.Heritage_Slabs.dto.request.ChangePasswordRequest;
+import com.example.Heritage_Slabs.model.AdminLog;
+import com.example.Heritage_Slabs.repository.AdminLogRepository;
 import com.example.Heritage_Slabs.model.User;
 import com.example.Heritage_Slabs.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +25,13 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AdminLogRepository adminLogRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AdminLogRepository adminLogRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.adminLogRepository = adminLogRepository;
     }
 
     // Define where to save the images locally
@@ -124,5 +128,10 @@ public class UserService {
         user.setRole(com.example.Heritage_Slabs.model.Role.valueOf(newRole.toUpperCase()));
 
         userRepository.save(user);
+    }
+
+    // Fetch all admin authentication logs
+    public List<AdminLog> getAdminLogs() {
+        return adminLogRepository.findAllByOrderByLoginTimeDesc();
     }
 }
