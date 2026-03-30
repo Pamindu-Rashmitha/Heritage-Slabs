@@ -26,6 +26,13 @@ public class Product {
     private Integer width;
     // ----------------------------------------------------------------
 
+    // Soft Delete Flag
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isDeleted = false;
+
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { isDeleted = deleted; }
+
     @Column(nullable = false)
     private String grade;
 
