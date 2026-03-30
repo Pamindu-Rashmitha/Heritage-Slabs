@@ -10,11 +10,13 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    // Custom query to find products running low on stock
-    // Logic: Current Stock <= The threshold set for that specific product
-    @Query("SELECT p FROM Product p WHERE p.stockQuantity <= p.lowStockThreshold")
+    // Fetch all products that are NOT deleted
+    List<Product> findAllByIsDeletedFalse();
+
+    // Updated: Only check low stock for active products
+    @Query("SELECT p FROM Product p WHERE p.stockQuantity <= p.lowStockThreshold AND p.isDeleted = false")
     List<Product> findProductsWithLowStock();
 
-    // Search products by name (Useful for search bars)
-    List<Product> findByNameContainingIgnoreCase(String name);
+    // Updated: Search products by name, ignoring deleted ones
+    List<Product> findByNameContainingIgnoreCaseAndIsDeletedFalse(String name);
 }

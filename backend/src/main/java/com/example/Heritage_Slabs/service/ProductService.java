@@ -28,9 +28,9 @@ public class ProductService {
         return mapToResponseDTO(savedProduct);
     }
 
-    // 2. Get all Products (For the Catalog)
+    // 2. Get all Products (For the Catalog) - UPDATED FOR SOFT DELETE
     public List<ProductResponseDTO> getAllProducts() {
-        return productRepository.findAll().stream()
+        return productRepository.findAllByIsDeletedFalse().stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -39,6 +39,12 @@ public class ProductService {
     public ProductResponseDTO getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+
+        // Safety check: Don't return it if it's "deleted"
+        if (product.isDeleted()) {
+            throw new RuntimeException("Product not found with id: " + id);
+        }
+
         return mapToResponseDTO(product);
     }
 
@@ -46,6 +52,11 @@ public class ProductService {
     public ProductResponseDTO updateProduct(Long id, ProductRequestDTO requestDTO) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+
+        // Safety check: Prevent updates on soft-deleted items
+        if (product.isDeleted()) {
+            throw new RuntimeException("Cannot update a deleted product.");
+        }
 
         updateProductFields(product, requestDTO);
         Product updatedProduct = productRepository.save(product);
@@ -56,6 +67,11 @@ public class ProductService {
     public ProductResponseDTO uploadProductImage(Long id, org.springframework.web.multipart.MultipartFile file) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+
+        // Safety check: Prevent image uploads on soft-deleted items
+        if (product.isDeleted()) {
+            throw new RuntimeException("Cannot upload an image to a deleted product.");
+        }
 
         try {
             // 1. Create the directory if it doesn't exist
@@ -84,12 +100,14 @@ public class ProductService {
         }
     }
 
-    // 6. Delete a Product
+    // 6. Delete a Product - UPDATED FOR SOFT DELETE
     public void deleteProduct(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new RuntimeException("Product not found with id: " + id);
-        }
-        productRepository.deleteById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+
+        // Toggle the flag instead of physically deleting the record from MySQL
+        product.setDeleted(true);
+        productRepository.save(product);
     }
 
     // 7. Get Low Stock Alerts
