@@ -5,6 +5,8 @@ import com.example.Heritage_Slabs.dto.response.ReviewResponseDTO;
 import com.example.Heritage_Slabs.model.Product;
 import com.example.Heritage_Slabs.model.Review;
 import com.example.Heritage_Slabs.model.User;
+import com.example.Heritage_Slabs.model.Status;
+import com.example.Heritage_Slabs.repository.OrderItemRepository;
 import com.example.Heritage_Slabs.repository.ProductRepository;
 import com.example.Heritage_Slabs.repository.ReviewRepository;
 import com.example.Heritage_Slabs.repository.UserRepository;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,13 +24,16 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final OrderItemRepository orderItemRepository;
 
     public ReviewService(ReviewRepository reviewRepository,
                          ProductRepository productRepository,
-                         UserRepository userRepository) {
+                         UserRepository userRepository,
+                         OrderItemRepository orderItemRepository) {
         this.reviewRepository = reviewRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     // Customer side
@@ -38,6 +44,18 @@ public class ReviewService {
 
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        boolean hasPurchased = orderItemRepository.existsByUserAndProductAndStatus(
+                user.getId(), product.getId(),
+                Arrays.asList(Status.Paid, Status.Shipped, Status.Delivered));
+
+        if (!hasPurchased) {
+            throw new RuntimeException("You can only review products you have purchased.");
+        }
+
+        if (reviewRepository.existsByUserIdAndProductId(user.getId(), product.getId())) {
+            throw new RuntimeException("You have already reviewed this product.");
+        }
 
         Review review = new Review();
         review.setProduct(product);

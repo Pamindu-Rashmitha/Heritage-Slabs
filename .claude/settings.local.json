@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(java -version)",
+      "Bash(javac -version)",
+      "Read(//mnt/d/Heritage-Slabs/**)",
+      "Bash(./mvnw spring-boot:run)",
+      "Read(//mnt/**)",
+      "Read(//d//**)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8080)",
+      "Bash(findstr LISTENING)",
+      "Bash(taskkill /PID 22944 /F)",
+      "Bash(cmd.exe /c \"taskkill /PID 22944 /F\")",
+      "Bash(powershell -Command \"Stop-Process -Id 22944 -Force\")",
+      "Bash(./mvnw.cmd spring-boot:run)",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_OwningProcess -Force }\")",
+      "Bash(powershell -Command 'Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }')",
+      "Bash(./mvnw compile:*)",
+      "Bash(powershell -Command '\\(Test-NetConnection -ComputerName localhost -Port 8080\\).TcpTestSucceeded')",
+      "Bash(curl -s -X POST http://localhost:8080/api/auth/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"alokawarnakula77@gmail.com\"\",\"\"password\"\":\"\"Snaloka20040310sn6@\"\"}')",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFsb2thd2FybmFrdWxhNzdAZ21haWwuY29tIiwiaWF0IjoxNzc1MDQ4ODE3LCJleHAiOjE3NzUxMzUyMTd9.jw7kB_XK3bEBKz5aVEeDpNW86LbYOTAdD5zbvNzRPZs\")",
+      "Bash(__NEW_LINE_568bbfe753205986__ echo:*)",
+      "Bash(curl -s -X POST http://localhost:8080/api/reviews -H \"Authorization: Bearer $TOKEN\" -H \"Content-Type: application/json\" -d '{\"\"productId\"\":3,\"\"rating\"\":4,\"\"title\"\":\"\"Great stone\"\",\"\"comment\"\":\"\"Very nice quality\"\"}')",
+      "Bash(curl -s -X POST http://localhost:8080/api/reviews -H \"Authorization: Bearer $TOKEN\" -H \"Content-Type: application/json\" -d '{\"\"productId\"\":1,\"\"rating\"\":5,\"\"title\"\":\"\"Amazing marble\"\",\"\"comment\"\":\"\"Best quality marble slab\"\"}')",
+      "Bash(curl -s -X POST http://localhost:8080/api/reviews -H \"Authorization: Bearer $TOKEN\" -H \"Content-Type: application/json\" -d '{\"\"productId\"\":1,\"\"rating\"\":3,\"\"title\"\":\"\"Second review\"\",\"\"comment\"\":\"\"Trying to review again\"\"}')",
+      "Bash(curl -s -X POST http://localhost:8080/api/auth/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"admin@heritageslabs.com\"\",\"\"password\"\":\"\"Snaloka20040310sn6@\"\"}')",
+      "Bash(curl -s -X POST http://localhost:8080/api/auth/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"admin@heritageslabs.com\"\",\"\"password\"\":\"\"password\"\"}')",
+      "Bash(__NEW_LINE_91aae1bd28c73f2c__ echo:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/api/admin/reviews -H \"Authorization: Bearer $TOKEN\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/api/admin/reviews/flagged -H \"Authorization: Bearer $TOKEN\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X PUT http://localhost:8080/api/admin/reviews/1/reply -H \"Authorization: Bearer $TOKEN\" -H \"Content-Type: application/json\" -d '{\"\"reply\"\":\"\"hacked\"\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X DELETE http://localhost:8080/api/admin/reviews/1 -H \"Authorization: Bearer $TOKEN\")"
+    ]
+  }
+}
