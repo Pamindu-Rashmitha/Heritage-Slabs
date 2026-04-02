@@ -16,12 +16,13 @@ public class ProductRequestDTO {
     private Double price;
 
     /**
-     * Regex ensures dimensions are strictly numbers separated by an asterisk.
+     * Regex ensures dimensions are strictly non-zero numbers separated by an asterisk.
+     * It prevents 0 * 0, 0 * n, and n * 0.
      * Spaces around the asterisk are allowed and handled.
      */
     @NotBlank(message = "Dimensions cannot be blank")
-    @Pattern(regexp = "^\\s*\\d+\\s*\\*\\s*\\d+\\s*$",
-            message = "Dimensions must be in the format 'length * width' using numbers (e.g., '120 * 60')")
+    @Pattern(regexp = "^\\s*0*[1-9]\\d*\\s*\\*\\s*0*[1-9]\\d*\\s*$",
+            message = "Dimensions must be in the format 'length * width' using numbers greater than 0 (e.g., '120 * 60')")
     private String dimensions;
 
     private String grade;
