@@ -13,6 +13,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     List<Review> findByUserId(Long userId);
 
+    boolean existsByUserIdAndProductId(Long userId, Long productId);
+
     // Admin queary
     List<Review> findByIsFlaggedTrueOrderByReviewDateDesc();
 

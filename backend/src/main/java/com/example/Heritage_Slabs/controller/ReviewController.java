@@ -3,6 +3,7 @@ package com.example.Heritage_Slabs.controller;
 import com.example.Heritage_Slabs.dto.request.ReviewRequestDTO;
 import com.example.Heritage_Slabs.dto.response.ReviewResponseDTO;
 import com.example.Heritage_Slabs.service.ReviewService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +22,15 @@ public class ReviewController {
 
     // Customer
     @PostMapping("/reviews")
-    public ResponseEntity<ReviewResponseDTO> createReview(
-            @RequestBody ReviewRequestDTO dto,
+    public ResponseEntity<?> createReview(
+            @Valid @RequestBody ReviewRequestDTO dto,
             Authentication auth) {
-        String email = auth.getName();
-        return ResponseEntity.ok(reviewService.createReview(dto, email));
+        try {
+            String email = auth.getName();
+            return ResponseEntity.ok(reviewService.createReview(dto, email));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body(java.util.Map.of("message", e.getMessage()));
+        }
     }
 
     // Admin

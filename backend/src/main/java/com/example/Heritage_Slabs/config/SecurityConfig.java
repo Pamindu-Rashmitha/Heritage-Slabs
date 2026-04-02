@@ -53,7 +53,13 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                         .requestMatchers("/api/products", "/api/products/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/orders", "/api/orders/**").authenticated()
-                        .requestMatchers("/api/reviews").authenticated()   // Only logged-in users can post review
+                        .requestMatchers("/api/reviews").authenticated()
+                        .requestMatchers("/api/reviews/**").authenticated()
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/tickets").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/tickets/*/status").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/tickets/user/**").authenticated()
+                        .requestMatchers("/api/tickets/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

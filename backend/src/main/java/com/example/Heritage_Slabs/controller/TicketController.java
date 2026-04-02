@@ -5,6 +5,7 @@ import com.example.Heritage_Slabs.dto.request.TicketRequestDTO;
 import com.example.Heritage_Slabs.dto.response.TicketResponseDTO;
 import com.example.Heritage_Slabs.model.TicketStatus;
 import com.example.Heritage_Slabs.service.TicketService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class TicketController {
     @PostMapping("/user/{userId}")
     public ResponseEntity<TicketResponseDTO> createTicket(
             @PathVariable Long userId, // Changed to Long
-            @RequestBody TicketRequestDTO request) {
+            @Valid @RequestBody TicketRequestDTO request) {
         return ResponseEntity.ok(ticketService.createTicket(userId, request));
     }
 
@@ -32,7 +33,7 @@ public class TicketController {
     public ResponseEntity<TicketResponseDTO> addMessage(
             @PathVariable String ticketId,
             @PathVariable Long senderId, // Changed to Long
-            @RequestBody TicketMessageRequestDTO request) {
+            @Valid @RequestBody TicketMessageRequestDTO request) {
         return ResponseEntity.ok(ticketService.addMessage(ticketId, senderId, request));
     }
 
