@@ -194,7 +194,11 @@ const OrdersList = () => {
         return <AdminLayout>{content}</AdminLayout>;
     }
 
-    return content;
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {content}
+        </div>
+    );
 };
 
 export default OrdersList;

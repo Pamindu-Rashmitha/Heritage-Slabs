@@ -54,6 +54,9 @@ public class Order {
     @Column(name = "order_note", length = 1000)
     private String orderNote;
 
+    @Column(name = "contact_email", nullable = false)
+    private String contactEmail;
+
 
 
 

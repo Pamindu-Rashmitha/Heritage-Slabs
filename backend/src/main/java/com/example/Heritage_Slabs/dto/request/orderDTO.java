@@ -56,6 +56,10 @@ public class orderDTO {
     // Optional field — no @NotBlank
     private String orderNote;
 
+    @NotBlank(message = "Contact email is required")
+    @Email(message = "Please enter a valid email address")
+    private String contactEmail;
+
     /**
      * Custom cross-field validation: preferred delivery date must be
      * within 1 month (30 days) of the order date for Sri Lankan logistics.

@@ -3,7 +3,7 @@ import { useCart } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
 import orderService from '../services/orderService';
 import api from '../services/api';
-import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft, X, Calendar, FileText, Hash, Building2 } from 'lucide-react';
+import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft, X, Calendar, FileText, Hash, Building2, Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const SRI_LANKA_PROVINCES = [
@@ -30,6 +30,7 @@ const OrderPage = () => {
     const [province, setProvince] = useState('');
     const [preferredDeliveryDate, setPreferredDeliveryDate] = useState('');
     const [orderNote, setOrderNote] = useState('');
+    const [contactEmail, setContactEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
@@ -71,6 +72,11 @@ const OrderPage = () => {
                 errors.preferredDeliveryDate = 'Delivery date must be within 30 days from today.';
             }
         }
+        if (!contactEmail.trim()) {
+            errors.contactEmail = 'Contact email is required.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
+            errors.contactEmail = 'Please enter a valid email address.';
+        }
 
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
@@ -111,8 +117,9 @@ const OrderPage = () => {
                 city: city.trim(),
                 postalCode: postalCode.trim(),
                 province: province,
-                preferredDeliveryDate: preferredDeliveryDate, // e.g. "2026-04-20"
+                preferredDeliveryDate: preferredDeliveryDate,
                 orderNote: orderNote.trim() || null,
+                contactEmail: contactEmail.trim(),
                 items: orderItems
             };
 
@@ -417,6 +424,24 @@ const OrderPage = () => {
                                         placeholder="Any special instructions for handling, access, or delivery preferences…"
                                     />
                                     <p className="text-xs text-gray-400 font-semibold px-1 text-right">{orderNote.length}/1000</p>
+                                </div>
+
+                                {/* Row 6: Contact Email for confirmation */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
+                                        <Mail size={14} className="text-blue-600" /> Confirmation Email <span className="text-red-400">*</span>
+                                    </label>
+                                    <input
+                                        id="contactEmail"
+                                        type="email"
+                                        value={contactEmail}
+                                        onChange={(e) => { setContactEmail(e.target.value); setFieldErrors(p => ({ ...p, contactEmail: '' })); }}
+                                        className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.contactEmail ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
+                                        placeholder="email@example.com"
+                                        required
+                                    />
+                                    <p className="text-xs text-blue-500 font-semibold px-1">📧 Your order confirmation will be sent to this email address.</p>
+                                    <FieldError name="contactEmail" />
                                 </div>
 
                             </form>

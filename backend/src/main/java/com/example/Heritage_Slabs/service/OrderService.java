@@ -35,6 +35,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ModelMapper modelMapper;
+    private final EmailService emailService;
 
     @Value("${payhere.merchant.id}")
     private String merchant_id;
@@ -169,6 +170,10 @@ public class OrderService {
         // 3. Update order status
         if (statusCode.equals("2")) { // 2 = SUCCESS in PayHere
             order.setStatus(Status.Paid);
+            Order savedOrder = orderRepository.save(order);
+            // Send confirmation email asynchronously
+            emailService.sendOrderConfirmationEmail(savedOrder);
+            return savedOrder;
         } else {
             order.setStatus(Status.Failed);
         }
