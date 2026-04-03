@@ -110,9 +110,9 @@ public class OrderService {
         result.put("first_name", order.getUser_id().getName());
         result.put("last_name", "");
         result.put("email", order.getUser_id().getEmail());
-        result.put("phone", "");
+        result.put("phone", order.getPhoneNumber());
         result.put("address", order.getAddress());
-        result.put("city", "");
+        result.put("city", order.getCity());
         result.put("country", "Sri Lanka");
 
         // Generate hash using the same formatted amount
