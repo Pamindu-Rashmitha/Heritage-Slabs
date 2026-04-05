@@ -2,10 +2,12 @@ package com.example.Heritage_Slabs;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling; // <-- NEW IMPORT
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling // <-- NEW: Enables Spring Boot's background task scheduler
+@EnableScheduling
+@EnableAsync
 public class HeritageSlabsApplication {
 
 	public static void main(String[] args) {

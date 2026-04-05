@@ -3,8 +3,20 @@ import { useCart } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
 import orderService from '../services/orderService';
 import api from '../services/api';
-import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft, X } from 'lucide-react';
+import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft, X, Calendar, FileText, Hash, Building2, Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+
+const SRI_LANKA_PROVINCES = [
+    'Central Province',
+    'Eastern Province',
+    'North Central Province',
+    'Northern Province',
+    'North Western Province',
+    'Sabaragamuwa Province',
+    'Southern Province',
+    'Uva Province',
+    'Western Province',
+];
 
 const OrderPage = () => {
     const { cartItems, getCartTotal, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -13,14 +25,72 @@ const OrderPage = () => {
 
     const [address, setAddress] = useState('');
     const [phone, setPhone] = useState('');
+    const [city, setCity] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+    const [province, setProvince] = useState('');
+    const [preferredDeliveryDate, setPreferredDeliveryDate] = useState('');
+    const [orderNote, setOrderNote] = useState('');
+    const [contactEmail, setContactEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const totalAmount = getCartTotal();
+
+    // Compute min and max for preferred delivery date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const minDate = today.toISOString().split('T')[0]; // today
+    const maxDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // today + 30 days
+
+    const validateFields = () => {
+        const errors = {};
+        const sriLankaPhoneRegex = /^(0|\+94)\d{9}$/;
+        const postalCodeRegex = /^\d{5}$/;
+
+        if (!address.trim()) errors.address = 'Delivery address is required.';
+        if (!phone.trim()) {
+            errors.phone = 'Contact number is required.';
+        } else if (!sriLankaPhoneRegex.test(phone.trim())) {
+            errors.phone = 'Enter a valid Sri Lankan number (e.g. 0771234567 or +94771234567).';
+        }
+        if (!city.trim()) errors.city = 'City is required.';
+        if (!postalCode.trim()) {
+            errors.postalCode = 'Postal code is required.';
+        } else if (!postalCodeRegex.test(postalCode.trim())) {
+            errors.postalCode = 'Postal code must be exactly 5 digits.';
+        }
+        if (!province) errors.province = 'Province is required.';
+        if (!preferredDeliveryDate) {
+            errors.preferredDeliveryDate = 'Preferred delivery date is required.';
+        } else {
+            const selected = new Date(preferredDeliveryDate);
+            selected.setHours(0, 0, 0, 0);
+            if (selected < today) {
+                errors.preferredDeliveryDate = 'Delivery date cannot be in the past.';
+            } else if (selected > new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)) {
+                errors.preferredDeliveryDate = 'Delivery date must be within 30 days from today.';
+            }
+        }
+        if (!contactEmail.trim()) {
+            errors.contactEmail = 'Contact email is required.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
+            errors.contactEmail = 'Please enter a valid email address.';
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const handleConfirmOrder = async (e) => {
         e.preventDefault();
         if (cartItems.length === 0) return;
+
+        if (!validateFields()) {
+            setError('Please fix the errors below before proceeding.');
+            return;
+        }
+
         setLoading(true);
         setError('');
 
@@ -42,7 +112,14 @@ const OrderPage = () => {
                 totalAmount: totalAmount,
                 status: 'Pending',
                 date: new Date().toISOString(),
-                address: address,
+                address: address.trim(),
+                phoneNumber: phone.trim(),
+                city: city.trim(),
+                postalCode: postalCode.trim(),
+                province: province,
+                preferredDeliveryDate: preferredDeliveryDate,
+                orderNote: orderNote.trim() || null,
+                contactEmail: contactEmail.trim(),
                 items: orderItems
             };
 
@@ -50,7 +127,7 @@ const OrderPage = () => {
 
             // 4. Fetch PayHere payment data parameters via initiatePayment
             const payhereData = await orderService.initiatePayment(createdOrder.id);
-            
+
             // 5. Create invisible HTML form dynamically and submit to PayHere Sandbox
             const form = document.createElement('form');
             form.method = 'POST';
@@ -70,10 +147,13 @@ const OrderPage = () => {
 
         } catch (err) {
             console.error("Order process or payment initialization failed", err);
-            setError("Failed to initialize payment. Please try again.");
+            const backendMsg = err?.response?.data?.message || err?.response?.data || null;
+            setError(backendMsg || "Failed to initialize payment. Please try again.");
             setLoading(false);
         }
     };
+
+    const isFormReady = address && phone && city && postalCode && province && preferredDeliveryDate;
 
     if (cartItems.length === 0 && !loading) {
         return (
@@ -92,6 +172,13 @@ const OrderPage = () => {
             </div>
         );
     }
+
+    const FieldError = ({ name }) =>
+        fieldErrors[name] ? (
+            <p className="text-red-500 text-xs font-bold mt-1 px-1 flex items-center gap-1">
+                <X size={12} /> {fieldErrors[name]}
+            </p>
+        ) : null;
 
     return (
         <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
@@ -198,9 +285,11 @@ const OrderPage = () => {
                                 </div>
                                 Shipping Details
                             </h2>
-                            <form className="space-y-10">
+                            <form className="space-y-10" onSubmit={handleConfirmOrder} noValidate>
+
+                                {/* Row 1: Name + Phone */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                    <div className="space-y-4">
+                                    <div className="space-y-2">
                                         <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
                                             <User size={14} className="text-blue-600" /> Consignee Name
                                         </label>
@@ -209,36 +298,152 @@ const OrderPage = () => {
                                             defaultValue={user?.name || ''}
                                             className="w-full px-8 py-5 bg-gray-50/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300"
                                             placeholder="Who will receive the delivery?"
-                                            required
+                                            readOnly
                                         />
                                     </div>
-                                    <div className="space-y-4">
+                                    <div className="space-y-2">
                                         <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                            <Phone size={14} className="text-blue-600" /> Contact Number
+                                            <Phone size={14} className="text-blue-600" /> Contact Number <span className="text-red-400">*</span>
                                         </label>
                                         <input
+                                            id="phone"
                                             type="text"
                                             value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
-                                            className="w-full px-8 py-5 bg-gray-50/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300"
+                                            onChange={(e) => { setPhone(e.target.value); setFieldErrors(p => ({ ...p, phone: '' })); }}
+                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.phone ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
                                             placeholder="+94 7X XXX XXXX"
                                             required
                                         />
+                                        <FieldError name="phone" />
                                     </div>
                                 </div>
-                                <div className="space-y-4">
+
+                                {/* Row 2: Full Address */}
+                                <div className="space-y-2">
                                     <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                        <MapPin size={14} className="text-blue-600" /> Transportation Address
+                                        <MapPin size={14} className="text-blue-600" /> Transportation Address <span className="text-red-400">*</span>
                                     </label>
                                     <textarea
-                                        rows="4"
+                                        id="address"
+                                        rows="3"
                                         value={address}
-                                        onChange={(e) => setAddress(e.target.value)}
-                                        className="w-full px-8 py-5 bg-gray-50/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 resize-none placeholder:font-medium placeholder:text-gray-300 leading-relaxed"
-                                        placeholder="Enter the full delivery address for safe slab transportation"
+                                        onChange={(e) => { setAddress(e.target.value); setFieldErrors(p => ({ ...p, address: '' })); }}
+                                        className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 resize-none placeholder:font-medium placeholder:text-gray-300 leading-relaxed ${fieldErrors.address ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
+                                        placeholder="No., Street / Lane, Area"
                                         required
-                                    ></textarea>
+                                    />
+                                    <FieldError name="address" />
                                 </div>
+
+                                {/* Row 3: City + Postal Code */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
+                                            <Building2 size={14} className="text-blue-600" /> City <span className="text-red-400">*</span>
+                                        </label>
+                                        <input
+                                            id="city"
+                                            type="text"
+                                            value={city}
+                                            onChange={(e) => { setCity(e.target.value); setFieldErrors(p => ({ ...p, city: '' })); }}
+                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.city ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
+                                            placeholder="e.g. Colombo, Kandy, Galle"
+                                            required
+                                        />
+                                        <FieldError name="city" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
+                                            <Hash size={14} className="text-blue-600" /> Postal Code <span className="text-red-400">*</span>
+                                        </label>
+                                        <input
+                                            id="postalCode"
+                                            type="text"
+                                            value={postalCode}
+                                            maxLength={5}
+                                            onChange={(e) => { setPostalCode(e.target.value.replace(/\D/g, '')); setFieldErrors(p => ({ ...p, postalCode: '' })); }}
+                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.postalCode ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
+                                            placeholder="5-digit code, e.g. 10100"
+                                            required
+                                        />
+                                        <FieldError name="postalCode" />
+                                    </div>
+                                </div>
+
+                                {/* Row 4: Province + Preferred Delivery Date */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
+                                            <MapPin size={14} className="text-blue-600" /> Province <span className="text-red-400">*</span>
+                                        </label>
+                                        <select
+                                            id="province"
+                                            value={province}
+                                            onChange={(e) => { setProvince(e.target.value); setFieldErrors(p => ({ ...p, province: '' })); }}
+                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 appearance-none cursor-pointer ${fieldErrors.province ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
+                                            required
+                                        >
+                                            <option value="">Select a province…</option>
+                                            {SRI_LANKA_PROVINCES.map(p => (
+                                                <option key={p} value={p}>{p}</option>
+                                            ))}
+                                        </select>
+                                        <FieldError name="province" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
+                                            <Calendar size={14} className="text-blue-600" /> Preferred Delivery Date <span className="text-red-400">*</span>
+                                        </label>
+                                        <input
+                                            id="preferredDeliveryDate"
+                                            type="date"
+                                            value={preferredDeliveryDate}
+                                            min={minDate}
+                                            max={maxDate}
+                                            onChange={(e) => { setPreferredDeliveryDate(e.target.value); setFieldErrors(p => ({ ...p, preferredDeliveryDate: '' })); }}
+                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 ${fieldErrors.preferredDeliveryDate ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-400 font-semibold px-1">Must be within 30 days of today's order date.</p>
+                                        <FieldError name="preferredDeliveryDate" />
+                                    </div>
+                                </div>
+
+                                {/* Row 5: Order Note (optional) */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
+                                        <FileText size={14} className="text-blue-600" /> Order Note <span className="text-gray-300 font-medium normal-case tracking-normal ml-1">(Optional)</span>
+                                    </label>
+                                    <textarea
+                                        id="orderNote"
+                                        rows="3"
+                                        value={orderNote}
+                                        onChange={(e) => setOrderNote(e.target.value)}
+                                        maxLength={1000}
+                                        className="w-full px-8 py-5 bg-gray-50/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-medium text-gray-700 resize-none placeholder:font-medium placeholder:text-gray-300 leading-relaxed"
+                                        placeholder="Any special instructions for handling, access, or delivery preferences…"
+                                    />
+                                    <p className="text-xs text-gray-400 font-semibold px-1 text-right">{orderNote.length}/1000</p>
+                                </div>
+
+                                {/* Row 6: Contact Email for confirmation */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
+                                        <Mail size={14} className="text-blue-600" /> Confirmation Email <span className="text-red-400">*</span>
+                                    </label>
+                                    <input
+                                        id="contactEmail"
+                                        type="email"
+                                        value={contactEmail}
+                                        onChange={(e) => { setContactEmail(e.target.value); setFieldErrors(p => ({ ...p, contactEmail: '' })); }}
+                                        className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.contactEmail ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
+                                        placeholder="email@example.com"
+                                        required
+                                    />
+                                    <p className="text-xs text-blue-500 font-semibold px-1">📧 Your order confirmation will be sent to this email address.</p>
+                                    <FieldError name="contactEmail" />
+                                </div>
+
                             </form>
                         </div>
                     </div>
@@ -276,7 +481,7 @@ const OrderPage = () => {
                             <div className="space-y-5">
                                 <button
                                     onClick={handleConfirmOrder}
-                                    disabled={!address || !phone || loading}
+                                    disabled={!isFormReady || loading}
                                     className="w-full py-6 bg-blue-600 text-white rounded-[1.5rem] font-black text-xl hover:bg-blue-700 transition-all duration-300 shadow-xl shadow-blue-400/20 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98] transform flex items-center justify-center gap-3"
                                 >
                                     {loading ? (
