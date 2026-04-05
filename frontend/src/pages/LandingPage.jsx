@@ -1,42 +1,36 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ArrowRight, Layout, Shield, TrendingUp, ShoppingCart, ClipboardList } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { ArrowRight, Layout, Shield, TrendingUp, X } from 'lucide-react';
 
 const LandingPage = ({ user, logout }) => {
     const [showDemoModal, setShowDemoModal] = useState(false);
 
     return (
-        <div className="min-h-screen bg-white font-sans text-gray-900">
-            {/* Navbar is now global in App.jsx */}
-
+        <div className="min-h-screen font-sans text-gray-900">
             {/* Hero Section */}
             <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
-                <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/50 via-gray-50 to-white"></div>
-
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-
-                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-8 max-w-4xl mx-auto leading-tight">
+                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-8 max-w-4xl mx-auto leading-tight animate-fade-in">
                         Construct Your Dreams  <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                        <span className="text-transparent bg-clip-text bg-accent-gradient">
                             With AI Precision
                         </span>
                     </h1>
 
-                    <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in">
                         The all-in-one ERP for Granite & Construction. Visualize designs with our advanced platform.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up">
                         <Link
                             to="/register"
-                            className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-xl shadow-blue-600/20 flex items-center justify-center gap-2 group"
+                            className="w-full sm:w-auto px-8 py-4 btn-accent rounded-2xl font-bold flex items-center justify-center gap-2 group text-lg"
                         >
                             Get Started
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                         <button
-                            className="w-full sm:w-auto px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                            className="w-full sm:w-auto px-8 py-4 glass-btn text-gray-700 rounded-2xl font-bold flex items-center justify-center gap-2"
                             onClick={() => setShowDemoModal(true)}
                         >
                             View Demo
@@ -50,8 +44,8 @@ const LandingPage = ({ user, logout }) => {
                             { icon: TrendingUp, title: "Real-time Tracking", desc: "Monitor progress and inventory live." },
                             { icon: Shield, title: "Secure Data", desc: "Enterprise-grade security for your assets." }
                         ].map((feature, idx) => (
-                            <div key={idx} className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4">
+                            <div key={idx} className="glass-card p-6 rounded-3xl hover:shadow-glass-lg hover:-translate-y-1 transition-all duration-300 group">
+                                <div className="w-12 h-12 bg-accent-gradient rounded-xl flex items-center justify-center mb-4 text-white shadow-glow-teal group-hover:scale-110 transition-transform">
                                     <feature.icon size={24} />
                                 </div>
                                 <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
@@ -63,10 +57,10 @@ const LandingPage = ({ user, logout }) => {
             </section>
 
             {/* About Us Section */}
-            <section id="about" className="py-20 bg-gray-50">
+            <section id="about" className="py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">About Us</h2>
+                        <h2 className="text-4xl font-extrabold text-gray-900 mb-4">About Us</h2>
                         <p className="text-xl text-gray-500 max-w-3xl mx-auto">
                             Your trusted partner in premium granite and natural stone solutions since 1995
                         </p>
@@ -85,21 +79,19 @@ const LandingPage = ({ user, logout }) => {
                                 ensures that every piece we deliver meets the highest standards of quality and beauty.
                             </p>
                             <div className="grid grid-cols-3 gap-4 text-center">
-                                <div className="p-4 bg-white rounded-xl shadow-sm">
-                                    <p className="text-3xl font-bold text-blue-600">25+</p>
-                                    <p className="text-sm text-gray-500">Years Experience</p>
-                                </div>
-                                <div className="p-4 bg-white rounded-xl shadow-sm">
-                                    <p className="text-3xl font-bold text-blue-600">5000+</p>
-                                    <p className="text-sm text-gray-500">Happy Clients</p>
-                                </div>
-                                <div className="p-4 bg-white rounded-xl shadow-sm">
-                                    <p className="text-3xl font-bold text-blue-600">100+</p>
-                                    <p className="text-sm text-gray-500">Stone Varieties</p>
-                                </div>
+                                {[
+                                    { value: "25+", label: "Years Experience" },
+                                    { value: "5000+", label: "Happy Clients" },
+                                    { value: "100+", label: "Stone Varieties" }
+                                ].map((stat, idx) => (
+                                    <div key={idx} className="glass-card p-4 rounded-2xl hover:shadow-glass transition-all duration-300">
+                                        <p className="text-3xl font-extrabold bg-clip-text text-transparent bg-accent-gradient">{stat.value}</p>
+                                        <p className="text-sm text-gray-500">{stat.label}</p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
+                        <div className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-3xl p-8 text-white shadow-glass-xl">
                             <h3 className="text-2xl font-bold mb-4">Why Choose Us?</h3>
                             <ul className="space-y-4">
                                 {[
@@ -110,7 +102,7 @@ const LandingPage = ({ user, logout }) => {
                                     "After-sales support and warranty"
                                 ].map((item, idx) => (
                                     <li key={idx} className="flex items-center gap-3">
-                                        <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                                        <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                             </svg>
@@ -125,10 +117,10 @@ const LandingPage = ({ user, logout }) => {
             </section>
 
             {/* Our Products Section */}
-            <section id="products" className="py-20 bg-white">
+            <section id="products" className="py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Products</h2>
+                        <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Our Products</h2>
                         <p className="text-xl text-gray-500 max-w-3xl mx-auto">
                             Explore our wide range of premium natural stones for every need
                         </p>
@@ -152,15 +144,15 @@ const LandingPage = ({ user, logout }) => {
                                 features: ["Chemical Resistant", "Heat Proof", "Easy to Clean"]
                             }
                         ].map((product, idx) => (
-                            <div key={idx} className="group bg-gray-50 rounded-2xl p-8 hover:bg-gradient-to-br hover:from-blue-600 hover:to-indigo-700 transition-all duration-300">
-                                <div className="w-16 h-16 bg-blue-100 group-hover:bg-white/20 rounded-xl flex items-center justify-center mb-6 transition-colors">
-                                    <Layout className="w-8 h-8 text-blue-600 group-hover:text-white transition-colors" />
+                            <div key={idx} className="group glass-card rounded-3xl p-8 hover:bg-accent-gradient hover:border-transparent transition-all duration-500 hover:shadow-glass-xl hover:-translate-y-2">
+                                <div className="w-16 h-16 bg-accent/10 group-hover:bg-white/20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-500">
+                                    <Layout className="w-8 h-8 text-accent group-hover:text-white transition-colors duration-500" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-gray-900 group-hover:text-white mb-3 transition-colors">{product.name}</h3>
-                                <p className="text-gray-600 group-hover:text-white/80 mb-6 transition-colors">{product.desc}</p>
+                                <h3 className="text-2xl font-bold text-gray-900 group-hover:text-white mb-3 transition-colors duration-500">{product.name}</h3>
+                                <p className="text-gray-600 group-hover:text-white/80 mb-6 transition-colors duration-500">{product.desc}</p>
                                 <div className="flex flex-wrap gap-2">
                                     {product.features.map((feature, fidx) => (
-                                        <span key={fidx} className="px-3 py-1 bg-blue-100 group-hover:bg-white/20 text-blue-700 group-hover:text-white text-sm rounded-full transition-colors">
+                                        <span key={fidx} className="px-3 py-1 bg-accent/10 group-hover:bg-white/20 text-accent group-hover:text-white text-sm rounded-full transition-colors duration-500 font-semibold">
                                             {feature}
                                         </span>
                                     ))}
@@ -172,20 +164,20 @@ const LandingPage = ({ user, logout }) => {
                     <div className="text-center mt-12">
                         <Link
                             to="/login"
-                            className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg"
+                            className="inline-flex items-center gap-2 px-8 py-4 btn-accent rounded-2xl font-bold text-lg group"
                         >
                             Browse All Products
-                            <ArrowRight size={20} />
+                            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
                 </div>
             </section>
 
             {/* FAQ Section */}
-            <section id="faq" className="py-20 bg-gray-50">
+            <section id="faq" className="py-20">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+                        <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Frequently Asked Questions</h2>
                         <p className="text-xl text-gray-500">Find answers to common questions about our products and services</p>
                     </div>
 
@@ -212,8 +204,8 @@ const LandingPage = ({ user, logout }) => {
                                 a: "We accept bank transfers, credit/debit cards, and cash payments. For large orders, we also offer flexible payment plans with an initial deposit."
                             }
                         ].map((faq, idx) => (
-                            <div key={idx} className="bg-white rounded-xl p-6 shadow-sm">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">{faq.q}</h3>
+                            <div key={idx} className="glass-card rounded-2xl p-6 hover:shadow-glass transition-all duration-300">
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">{faq.q}</h3>
                                 <p className="text-gray-600">{faq.a}</p>
                             </div>
                         ))}
@@ -222,72 +214,70 @@ const LandingPage = ({ user, logout }) => {
             </section>
 
             {/* Contact Section */}
-            <section id="contact" className="py-20 bg-white">
+            <section id="contact" className="py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h2>
+                        <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Contact Us</h2>
                         <p className="text-xl text-gray-500">Get in touch with us for inquiries, quotes, or to visit our showroom</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-12">
-                        {/* Contact Info */}
                         <div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-6">Get In Touch</h3>
-
                             <div className="space-y-6">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
+                                {[
+                                    {
+                                        icon: (
+                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                        ),
+                                        title: "Our Location",
+                                        content: <>No. 151, Colombo Road,<br />Ukwatta, Avissawella</>
+                                    },
+                                    {
+                                        icon: (
+                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                            </svg>
+                                        ),
+                                        title: "Phone",
+                                        content: <>036 222 2655<br />071 416 1301</>
+                                    },
+                                    {
+                                        icon: (
+                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        ),
+                                        title: "Email",
+                                        content: "vijithagranites@yahoo.com"
+                                    },
+                                    {
+                                        icon: (
+                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        ),
+                                        title: "Business Hours",
+                                        content: <>Mon - Sat: 8:00 AM - 6:00 PM<br />Sunday: Closed</>
+                                    }
+                                ].map((info, idx) => (
+                                    <div key={idx} className="flex items-start gap-4">
+                                        <div className="w-12 h-12 bg-accent-gradient rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow-teal">
+                                            {info.icon}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900">{info.title}</h4>
+                                            <p className="text-gray-600">{info.content}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">Our Location</h4>
-                                        <p className="text-gray-600">No. 151, Colombo Road,<br />Ukwatta, Avissawella</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">Phone</h4>
-                                        <p className="text-gray-600">036 222 2655<br />071 416 1301</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">Email</h4>
-                                        <p className="text-gray-600">vijithagranites@yahoo.com</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">Business Hours</h4>
-                                        <p className="text-gray-600">Mon - Sat: 8:00 AM - 6:00 PM<br />Sunday: Closed</p>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Map Placeholder */}
-                        <div className="bg-gray-100 rounded-2xl overflow-hidden h-96">
+                        <div className="glass-card rounded-3xl overflow-hidden h-96 shadow-glass-lg">
                             <iframe
                                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d507003.271235945!2d79.82433370985817!3d6.895022464296891!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae3a99956e30607%3A0xce1f603c6e7d9734!2sVijitha%20Granite!5e0!3m2!1sen!2slk!4v1769700102876!5m2!1sen!2slk"
                                 width="100%"
@@ -356,11 +346,11 @@ const LandingPage = ({ user, logout }) => {
             {/* Demo Video Modal */}
             {showDemoModal && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in"
                     onClick={() => setShowDemoModal(false)}
                 >
                     <div
-                        className="relative w-full max-w-4xl mx-4"
+                        className="relative w-full max-w-4xl mx-4 animate-scale-in"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
@@ -369,7 +359,7 @@ const LandingPage = ({ user, logout }) => {
                         >
                             <X size={32} />
                         </button>
-                        <div className="bg-black rounded-2xl overflow-hidden shadow-2xl">
+                        <div className="glass-modal rounded-3xl overflow-hidden">
                             <video
                                 src="/Demo.mp4"
                                 controls
@@ -382,7 +372,6 @@ const LandingPage = ({ user, logout }) => {
                     </div>
                 </div>
             )}
-
         </div>
     );
 };

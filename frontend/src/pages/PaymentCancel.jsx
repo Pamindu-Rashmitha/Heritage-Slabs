@@ -4,9 +4,9 @@ import { XCircle, ArrowLeft, RefreshCcw } from 'lucide-react';
 
 const PaymentCancel = () => {
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-            <div className="bg-white p-12 rounded-3xl shadow-xl max-w-md w-full text-center border border-gray-100">
-                <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4">
+            <div className="glass-modal p-12 rounded-3xl max-w-md w-full text-center animate-scale-in">
+                <div className="w-24 h-24 bg-red-100/60 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
                     <XCircle size={48} className="text-red-500" />
                 </div>
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-4 tracking-tight">Payment Cancelled</h1>
@@ -14,19 +14,11 @@ const PaymentCancel = () => {
                     Your payment was cancelled or declined. Your order has not been completed. Please try again or use a different payment method.
                 </p>
                 <div className="space-y-4">
-                    <Link
-                        to="/cart"
-                        className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black transition shadow-lg"
-                    >
-                        <RefreshCcw size={20} />
-                        Try Payment Again
+                    <Link to="/cart" className="w-full py-4 btn-accent rounded-xl font-bold flex items-center justify-center gap-2">
+                        <RefreshCcw size={20} /> Try Payment Again
                     </Link>
-                    <Link
-                        to="/catalog"
-                        className="w-full py-4 text-gray-500 font-bold hover:text-gray-900 transition flex items-center justify-center gap-2"
-                    >
-                        <ArrowLeft size={16} />
-                        Back to Catalog
+                    <Link to="/catalog" className="w-full py-4 glass-btn text-gray-500 font-bold hover:text-accent transition flex items-center justify-center gap-2 rounded-xl">
+                        <ArrowLeft size={16} /> Back to Catalog
                     </Link>
                 </div>
             </div>

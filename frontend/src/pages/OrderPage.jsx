@@ -7,15 +7,8 @@ import { ShoppingBag, ChevronRight, MapPin, Phone, User, Trash2, ArrowLeft, X, C
 import { Link, useNavigate } from 'react-router-dom';
 
 const SRI_LANKA_PROVINCES = [
-    'Central Province',
-    'Eastern Province',
-    'North Central Province',
-    'Northern Province',
-    'North Western Province',
-    'Sabaragamuwa Province',
-    'Southern Province',
-    'Uva Province',
-    'Western Province',
+    'Central Province', 'Eastern Province', 'North Central Province', 'Northern Province',
+    'North Western Province', 'Sabaragamuwa Province', 'Southern Province', 'Uva Province', 'Western Province',
 ];
 
 const OrderPage = () => {
@@ -37,11 +30,10 @@ const OrderPage = () => {
 
     const totalAmount = getCartTotal();
 
-    // Compute min and max for preferred delivery date
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const minDate = today.toISOString().split('T')[0]; // today
-    const maxDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // today + 30 days
+    const minDate = today.toISOString().split('T')[0];
+    const maxDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const validateFields = () => {
         const errors = {};
@@ -49,34 +41,21 @@ const OrderPage = () => {
         const postalCodeRegex = /^\d{5}$/;
 
         if (!address.trim()) errors.address = 'Delivery address is required.';
-        if (!phone.trim()) {
-            errors.phone = 'Contact number is required.';
-        } else if (!sriLankaPhoneRegex.test(phone.trim())) {
-            errors.phone = 'Enter a valid Sri Lankan number (e.g. 0771234567 or +94771234567).';
-        }
+        if (!phone.trim()) { errors.phone = 'Contact number is required.'; }
+        else if (!sriLankaPhoneRegex.test(phone.trim())) { errors.phone = 'Enter a valid Sri Lankan number (e.g. 0771234567 or +94771234567).'; }
         if (!city.trim()) errors.city = 'City is required.';
-        if (!postalCode.trim()) {
-            errors.postalCode = 'Postal code is required.';
-        } else if (!postalCodeRegex.test(postalCode.trim())) {
-            errors.postalCode = 'Postal code must be exactly 5 digits.';
-        }
+        if (!postalCode.trim()) { errors.postalCode = 'Postal code is required.'; }
+        else if (!postalCodeRegex.test(postalCode.trim())) { errors.postalCode = 'Postal code must be exactly 5 digits.'; }
         if (!province) errors.province = 'Province is required.';
-        if (!preferredDeliveryDate) {
-            errors.preferredDeliveryDate = 'Preferred delivery date is required.';
-        } else {
+        if (!preferredDeliveryDate) { errors.preferredDeliveryDate = 'Preferred delivery date is required.'; }
+        else {
             const selected = new Date(preferredDeliveryDate);
             selected.setHours(0, 0, 0, 0);
-            if (selected < today) {
-                errors.preferredDeliveryDate = 'Delivery date cannot be in the past.';
-            } else if (selected > new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)) {
-                errors.preferredDeliveryDate = 'Delivery date must be within 30 days from today.';
-            }
+            if (selected < today) { errors.preferredDeliveryDate = 'Delivery date cannot be in the past.'; }
+            else if (selected > new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)) { errors.preferredDeliveryDate = 'Delivery date must be within 30 days from today.'; }
         }
-        if (!contactEmail.trim()) {
-            errors.contactEmail = 'Contact email is required.';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
-            errors.contactEmail = 'Please enter a valid email address.';
-        }
+        if (!contactEmail.trim()) { errors.contactEmail = 'Contact email is required.'; }
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) { errors.contactEmail = 'Please enter a valid email address.'; }
 
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
@@ -85,66 +64,41 @@ const OrderPage = () => {
     const handleConfirmOrder = async (e) => {
         e.preventDefault();
         if (cartItems.length === 0) return;
-
-        if (!validateFields()) {
-            setError('Please fix the errors below before proceeding.');
-            return;
-        }
+        if (!validateFields()) { setError('Please fix the errors below before proceeding.'); return; }
 
         setLoading(true);
         setError('');
 
         try {
-            // 1. Fetch full user object from backend using email
             const userResponse = await api.get(`/users/${user.email}`);
             const fullUser = userResponse.data;
 
-            // 2. Prepare items in the format the DTO expects
             const orderItems = cartItems.map(item => ({
                 product_id: { id: item.id },
                 quantity: item.quantity,
                 priceAtOrder: item.price
             }));
 
-            // 3. Create Order
             const orderData = {
-                user_id: fullUser,
-                totalAmount: totalAmount,
-                status: 'Pending',
-                date: new Date().toISOString(),
-                address: address.trim(),
-                phoneNumber: phone.trim(),
-                city: city.trim(),
-                postalCode: postalCode.trim(),
-                province: province,
-                preferredDeliveryDate: preferredDeliveryDate,
-                orderNote: orderNote.trim() || null,
-                contactEmail: contactEmail.trim(),
-                items: orderItems
+                user_id: fullUser, totalAmount, status: 'Pending', date: new Date().toISOString(),
+                address: address.trim(), phoneNumber: phone.trim(), city: city.trim(),
+                postalCode: postalCode.trim(), province, preferredDeliveryDate,
+                orderNote: orderNote.trim() || null, contactEmail: contactEmail.trim(), items: orderItems
             };
 
             const createdOrder = await orderService.createOrder(orderData);
-
-            // 4. Fetch PayHere payment data parameters via initiatePayment
             const payhereData = await orderService.initiatePayment(createdOrder.id);
 
-            // 5. Create invisible HTML form dynamically and submit to PayHere Sandbox
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = 'https://sandbox.payhere.lk/pay/checkout';
-
-            // Append all PayHere payload properties to the form
             Object.keys(payhereData).forEach(key => {
                 const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = payhereData[key];
+                input.type = 'hidden'; input.name = key; input.value = payhereData[key];
                 form.appendChild(input);
             });
-
             document.body.appendChild(form);
             form.submit();
-
         } catch (err) {
             console.error("Order process or payment initialization failed", err);
             const backendMsg = err?.response?.data?.message || err?.response?.data || null;
@@ -157,16 +111,15 @@ const OrderPage = () => {
 
     if (cartItems.length === 0 && !loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-center items-center justify-center p-4">
-                <div className="text-center bg-white p-12 rounded-3xl shadow-xl max-w-md w-full">
-                    <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <div className="text-center glass-modal p-12 rounded-3xl max-w-md w-full animate-scale-in">
+                    <div className="w-24 h-24 glass rounded-full flex items-center justify-center mx-auto mb-6">
                         <ShoppingBag size={48} className="text-gray-400" />
                     </div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
                     <p className="text-gray-500 mb-8">Looks like you haven't added any premium slabs to your order yet.</p>
-                    <Link to="/catalog" className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg">
-                        Browse Catalog
-                        <ChevronRight size={20} />
+                    <Link to="/catalog" className="inline-flex items-center gap-2 px-8 py-4 btn-accent rounded-xl font-bold">
+                        Browse Catalog <ChevronRight size={20} />
                     </Link>
                 </div>
             </div>
@@ -180,96 +133,77 @@ const OrderPage = () => {
             </p>
         ) : null;
 
+    const inputClasses = (fieldName) =>
+        `w-full px-6 py-4 glass-input rounded-2xl font-bold text-gray-900 placeholder:font-medium placeholder:text-gray-400 ${fieldErrors[fieldName] ? 'border-red-300 bg-red-50/30' : ''}`;
+
     return (
-        <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen pt-28 pb-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
                 <div className="flex items-center gap-4 mb-10">
-                    <Link to="/catalog" className="p-3 bg-white rounded-2xl shadow-sm hover:shadow-md transition text-gray-600 border border-gray-100">
+                    <Link to="/catalog" className="p-3 glass-btn rounded-2xl text-gray-600">
                         <ArrowLeft size={24} />
                     </Link>
                     <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight">
-                        Confirm <span className="text-blue-600 italic">Order</span>
+                        Confirm <span className="bg-clip-text text-transparent bg-accent-gradient italic">Order</span>
                     </h1>
                 </div>
 
                 {error && (
-                    <div className="mb-10 p-5 bg-red-50 text-red-700 rounded-3xl border border-red-100 font-bold flex items-center gap-3 animate-shake">
-                        <div className="bg-red-100 p-2 rounded-xl">
-                            <X size={20} />
-                        </div>
+                    <div className="mb-10 p-5 bg-red-50/70 backdrop-blur-sm text-red-700 rounded-3xl border border-red-200/50 font-bold flex items-center gap-3">
+                        <div className="bg-red-100/60 p-2 rounded-xl"><X size={20} /></div>
                         {error}
                     </div>
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    {/* Left Side: Cart Items & Form */}
+                    {/* Left Side */}
                     <div className="lg:col-span-2 space-y-10">
                         {/* Cart Summary */}
-                        <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                            <div className="p-10 border-b border-gray-100 bg-gray-50/30 flex justify-between items-center">
+                        <div className="glass-card rounded-3xl overflow-hidden">
+                            <div className="p-8 border-b border-white/30 flex justify-between items-center">
                                 <h2 className="text-2xl font-extrabold text-gray-900 flex items-center gap-4">
-                                    <div className="bg-blue-600/10 p-3 rounded-2xl">
-                                        <ShoppingBag size={28} className="text-blue-600" />
-                                    </div>
+                                    <div className="bg-accent/10 p-3 rounded-2xl"><ShoppingBag size={24} className="text-accent" /></div>
                                     Cart Summary
                                 </h2>
-                                <span className="bg-blue-50 text-blue-600 px-5 py-2 rounded-full text-sm font-black tracking-widest uppercase border border-blue-100">
-                                    {cartItems.length} {cartItems.length === 1 ? 'Slab' : 'Slabs'}
-                                </span>
+                                <span className="glass-badge text-accent-dark">{cartItems.length} {cartItems.length === 1 ? 'Slab' : 'Slabs'}</span>
                             </div>
-                            <div className="divide-y divide-gray-100">
+                            <div className="divide-y divide-white/20">
                                 {cartItems.map((item) => (
-                                    <div key={item.id} className="p-10 flex flex-col sm:flex-row items-center gap-10 hover:bg-gray-50/50 transition duration-300 group">
-                                        <div className="w-40 h-40 bg-gray-50 rounded-3xl overflow-hidden shadow-sm flex-shrink-0 border border-gray-100 relative">
+                                    <div key={item.id} className="p-8 flex flex-col sm:flex-row items-center gap-8 hover:bg-white/20 transition duration-300 group">
+                                        <div className="w-32 h-32 glass rounded-2xl overflow-hidden flex-shrink-0">
                                             {item.textureUrl ? (
-                                                <img
-                                                    src={`http://localhost:8080${item.textureUrl}`}
-                                                    alt={item.name}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                                />
+                                                <img src={`http://localhost:8080${item.textureUrl}`} alt={item.name}
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                             ) : (
-                                                <div className="flex items-center justify-center h-full text-gray-300 font-bold text-xs tracking-widest uppercase p-4 text-center">No Texture</div>
+                                                <div className="flex items-center justify-center h-full text-gray-300 font-bold text-xs">No Texture</div>
                                             )}
                                         </div>
                                         <div className="flex-1 text-center sm:text-left">
-                                            <h3 className="text-2xl font-extrabold text-gray-900 mb-2 group-hover:text-blue-600 transition">{item.name}</h3>
-                                            <div className="flex flex-wrap justify-center sm:justify-start gap-3 mb-6">
-                                                <span className="text-blue-600 text-xs font-black px-3 py-1 bg-blue-50 rounded-lg uppercase tracking-wider border border-blue-100/50">{item.grade} Grade</span>
-                                                <span className="text-gray-500 text-xs font-bold px-3 py-1 bg-gray-100 rounded-lg uppercase tracking-wider">{item.dimensions}</span>
+                                            <h3 className="text-xl font-extrabold text-gray-900 mb-2">{item.name}</h3>
+                                            <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-4">
+                                                <span className="glass-badge text-accent-dark">{item.grade}</span>
+                                                <span className="glass-badge text-gray-600">{item.dimensions}</span>
                                             </div>
-
-                                            <div className="flex flex-col sm:flex-row items-center gap-8">
-                                                <div className="text-blue-600 font-black text-3xl">
-                                                    {item.price.toLocaleString()} <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">LKR/sqft</span>
+                                            <div className="flex flex-col sm:flex-row items-center gap-6">
+                                                <div className="text-accent font-extrabold text-2xl">
+                                                    {item.price.toLocaleString()} <span className="text-xs text-gray-400 uppercase">LKR/sqft</span>
                                                 </div>
-
-                                                {/* Quantity Controls */}
-                                                <div className="flex items-center bg-gray-50 rounded-2xl p-1.5 border border-gray-100 shadow-inner">
-                                                    <button
-                                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                        className="w-12 h-12 flex items-center justify-center bg-white hover:bg-gray-50 rounded-xl transition text-gray-400 hover:text-blue-600 font-bold shadow-sm border border-gray-100"
-                                                    >
-                                                        -
-                                                    </button>
-                                                    <span className="w-14 text-center font-black text-xl text-gray-900">{item.quantity}</span>
-                                                    <button
-                                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                        className="w-12 h-12 flex items-center justify-center bg-white hover:bg-gray-50 rounded-xl transition text-gray-400 hover:text-blue-600 font-bold shadow-sm border border-gray-100"
-                                                    >
-                                                        +
-                                                    </button>
+                                                <div className="flex items-center glass rounded-xl p-1">
+                                                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                        className="w-10 h-10 flex items-center justify-center hover:bg-white/40 rounded-lg transition text-gray-500 font-bold">-</button>
+                                                    <span className="w-12 text-center font-extrabold text-gray-900">{item.quantity}</span>
+                                                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                        className="w-10 h-10 flex items-center justify-center hover:bg-white/40 rounded-lg transition text-gray-500 font-bold">+</button>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-6">
-                                            <div className="text-2xl font-black text-gray-900">
-                                                {(item.price * item.quantity).toLocaleString()} <span className="text-sm font-bold text-gray-400 uppercase">LKR</span>
+                                        <div className="flex flex-col items-end gap-4">
+                                            <div className="text-xl font-extrabold text-gray-900">
+                                                {(item.price * item.quantity).toLocaleString()} <span className="text-sm text-gray-400">LKR</span>
                                             </div>
-                                            <button
-                                                onClick={() => removeFromCart(item.id)}
-                                                className="p-4 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-[1.25rem] transition-all duration-300 group/trash border border-transparent hover:border-red-100"
-                                            >
-                                                <Trash2 size={24} className="group-hover/trash:scale-110 transition" />
+                                            <button onClick={() => removeFromCart(item.id)}
+                                                className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50/50 rounded-xl transition-all">
+                                                <Trash2 size={20} />
                                             </button>
                                         </div>
                                     </div>
@@ -278,233 +212,152 @@ const OrderPage = () => {
                         </div>
 
                         {/* Order Form */}
-                        <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-12">
-                            <h2 className="text-2xl font-extrabold text-gray-900 mb-12 flex items-center gap-4">
-                                <div className="bg-blue-600/10 p-3 rounded-2xl">
-                                    <MapPin size={28} className="text-blue-600" />
-                                </div>
+                        <div className="glass-card rounded-3xl p-10">
+                            <h2 className="text-2xl font-extrabold text-gray-900 mb-10 flex items-center gap-4">
+                                <div className="bg-accent/10 p-3 rounded-2xl"><MapPin size={24} className="text-accent" /></div>
                                 Shipping Details
                             </h2>
-                            <form className="space-y-10" onSubmit={handleConfirmOrder} noValidate>
-
-                                {/* Row 1: Name + Phone */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <form className="space-y-8" onSubmit={handleConfirmOrder} noValidate>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                            <User size={14} className="text-blue-600" /> Consignee Name
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                            <User size={14} className="text-accent" /> Consignee Name
                                         </label>
-                                        <input
-                                            type="text"
-                                            defaultValue={user?.name || ''}
-                                            className="w-full px-8 py-5 bg-gray-50/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300"
-                                            placeholder="Who will receive the delivery?"
-                                            readOnly
-                                        />
+                                        <input type="text" defaultValue={user?.name || ''} className={inputClasses('')} readOnly />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                            <Phone size={14} className="text-blue-600" /> Contact Number <span className="text-red-400">*</span>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                            <Phone size={14} className="text-accent" /> Contact Number <span className="text-red-400">*</span>
                                         </label>
-                                        <input
-                                            id="phone"
-                                            type="text"
-                                            value={phone}
-                                            onChange={(e) => { setPhone(e.target.value); setFieldErrors(p => ({ ...p, phone: '' })); }}
-                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.phone ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
-                                            placeholder="+94 7X XXX XXXX"
-                                            required
-                                        />
+                                        <input type="text" value={phone} onChange={(e) => { setPhone(e.target.value); setFieldErrors(p => ({ ...p, phone: '' })); }}
+                                            className={inputClasses('phone')} placeholder="+94 7X XXX XXXX" required />
                                         <FieldError name="phone" />
                                     </div>
                                 </div>
 
-                                {/* Row 2: Full Address */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                        <MapPin size={14} className="text-blue-600" /> Transportation Address <span className="text-red-400">*</span>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                        <MapPin size={14} className="text-accent" /> Transportation Address <span className="text-red-400">*</span>
                                     </label>
-                                    <textarea
-                                        id="address"
-                                        rows="3"
-                                        value={address}
-                                        onChange={(e) => { setAddress(e.target.value); setFieldErrors(p => ({ ...p, address: '' })); }}
-                                        className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 resize-none placeholder:font-medium placeholder:text-gray-300 leading-relaxed ${fieldErrors.address ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
-                                        placeholder="No., Street / Lane, Area"
-                                        required
-                                    />
+                                    <textarea rows="3" value={address} onChange={(e) => { setAddress(e.target.value); setFieldErrors(p => ({ ...p, address: '' })); }}
+                                        className={`${inputClasses('address')} resize-none`} placeholder="No., Street / Lane, Area" required />
                                     <FieldError name="address" />
                                 </div>
 
-                                {/* Row 3: City + Postal Code */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                            <Building2 size={14} className="text-blue-600" /> City <span className="text-red-400">*</span>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                            <Building2 size={14} className="text-accent" /> City <span className="text-red-400">*</span>
                                         </label>
-                                        <input
-                                            id="city"
-                                            type="text"
-                                            value={city}
-                                            onChange={(e) => { setCity(e.target.value); setFieldErrors(p => ({ ...p, city: '' })); }}
-                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.city ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
-                                            placeholder="e.g. Colombo, Kandy, Galle"
-                                            required
-                                        />
+                                        <input type="text" value={city} onChange={(e) => { setCity(e.target.value); setFieldErrors(p => ({ ...p, city: '' })); }}
+                                            className={inputClasses('city')} placeholder="e.g. Colombo" required />
                                         <FieldError name="city" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                            <Hash size={14} className="text-blue-600" /> Postal Code <span className="text-red-400">*</span>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                            <Hash size={14} className="text-accent" /> Postal Code <span className="text-red-400">*</span>
                                         </label>
-                                        <input
-                                            id="postalCode"
-                                            type="text"
-                                            value={postalCode}
-                                            maxLength={5}
+                                        <input type="text" value={postalCode} maxLength={5}
                                             onChange={(e) => { setPostalCode(e.target.value.replace(/\D/g, '')); setFieldErrors(p => ({ ...p, postalCode: '' })); }}
-                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.postalCode ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
-                                            placeholder="5-digit code, e.g. 10100"
-                                            required
-                                        />
+                                            className={inputClasses('postalCode')} placeholder="5-digit code" required />
                                         <FieldError name="postalCode" />
                                     </div>
                                 </div>
 
-                                {/* Row 4: Province + Preferred Delivery Date */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                            <MapPin size={14} className="text-blue-600" /> Province <span className="text-red-400">*</span>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                            <MapPin size={14} className="text-accent" /> Province <span className="text-red-400">*</span>
                                         </label>
-                                        <select
-                                            id="province"
-                                            value={province}
-                                            onChange={(e) => { setProvince(e.target.value); setFieldErrors(p => ({ ...p, province: '' })); }}
-                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 appearance-none cursor-pointer ${fieldErrors.province ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
-                                            required
-                                        >
+                                        <select value={province} onChange={(e) => { setProvince(e.target.value); setFieldErrors(p => ({ ...p, province: '' })); }}
+                                            className={`${inputClasses('province')} appearance-none cursor-pointer`} required>
                                             <option value="">Select a province…</option>
-                                            {SRI_LANKA_PROVINCES.map(p => (
-                                                <option key={p} value={p}>{p}</option>
-                                            ))}
+                                            {SRI_LANKA_PROVINCES.map(p => (<option key={p} value={p}>{p}</option>))}
                                         </select>
                                         <FieldError name="province" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                            <Calendar size={14} className="text-blue-600" /> Preferred Delivery Date <span className="text-red-400">*</span>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                            <Calendar size={14} className="text-accent" /> Preferred Delivery Date <span className="text-red-400">*</span>
                                         </label>
-                                        <input
-                                            id="preferredDeliveryDate"
-                                            type="date"
-                                            value={preferredDeliveryDate}
-                                            min={minDate}
-                                            max={maxDate}
+                                        <input type="date" value={preferredDeliveryDate} min={minDate} max={maxDate}
                                             onChange={(e) => { setPreferredDeliveryDate(e.target.value); setFieldErrors(p => ({ ...p, preferredDeliveryDate: '' })); }}
-                                            className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 ${fieldErrors.preferredDeliveryDate ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
-                                            required
-                                        />
-                                        <p className="text-xs text-gray-400 font-semibold px-1">Must be within 30 days of today's order date.</p>
+                                            className={inputClasses('preferredDeliveryDate')} required />
+                                        <p className="text-xs text-gray-400 font-medium px-1">Within 30 days of today.</p>
                                         <FieldError name="preferredDeliveryDate" />
                                     </div>
                                 </div>
 
-                                {/* Row 5: Order Note (optional) */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                        <FileText size={14} className="text-blue-600" /> Order Note <span className="text-gray-300 font-medium normal-case tracking-normal ml-1">(Optional)</span>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                        <FileText size={14} className="text-accent" /> Order Note <span className="text-gray-300 font-medium normal-case tracking-normal ml-1">(Optional)</span>
                                     </label>
-                                    <textarea
-                                        id="orderNote"
-                                        rows="3"
-                                        value={orderNote}
-                                        onChange={(e) => setOrderNote(e.target.value)}
-                                        maxLength={1000}
-                                        className="w-full px-8 py-5 bg-gray-50/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-medium text-gray-700 resize-none placeholder:font-medium placeholder:text-gray-300 leading-relaxed"
-                                        placeholder="Any special instructions for handling, access, or delivery preferences…"
-                                    />
-                                    <p className="text-xs text-gray-400 font-semibold px-1 text-right">{orderNote.length}/1000</p>
+                                    <textarea rows="3" value={orderNote} onChange={(e) => setOrderNote(e.target.value)} maxLength={1000}
+                                        className={`${inputClasses('')} resize-none font-medium`} placeholder="Any special instructions…" />
+                                    <p className="text-xs text-gray-400 font-medium px-1 text-right">{orderNote.length}/1000</p>
                                 </div>
 
-                                {/* Row 6: Contact Email for confirmation */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 px-1">
-                                        <Mail size={14} className="text-blue-600" /> Confirmation Email <span className="text-red-400">*</span>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                                        <Mail size={14} className="text-accent" /> Confirmation Email <span className="text-red-400">*</span>
                                     </label>
-                                    <input
-                                        id="contactEmail"
-                                        type="email"
-                                        value={contactEmail}
-                                        onChange={(e) => { setContactEmail(e.target.value); setFieldErrors(p => ({ ...p, contactEmail: '' })); }}
-                                        className={`w-full px-8 py-5 bg-gray-50/50 border rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all duration-300 font-extrabold text-gray-900 placeholder:font-medium placeholder:text-gray-300 ${fieldErrors.contactEmail ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
-                                        placeholder="email@example.com"
-                                        required
-                                    />
-                                    <p className="text-xs text-blue-500 font-semibold px-1">📧 Your order confirmation will be sent to this email address.</p>
+                                    <input type="email" value={contactEmail} onChange={(e) => { setContactEmail(e.target.value); setFieldErrors(p => ({ ...p, contactEmail: '' })); }}
+                                        className={inputClasses('contactEmail')} placeholder="email@example.com" required />
+                                    <p className="text-xs text-accent font-semibold px-1">📧 Confirmation will be sent to this email.</p>
                                     <FieldError name="contactEmail" />
                                 </div>
-
                             </form>
                         </div>
                     </div>
 
-                    {/* Right Side: Order Summary */}
+                    {/* Right Side: Summary */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-gray-100 p-10 lg:sticky lg:top-28">
-                            <h2 className="text-3xl font-black text-gray-900 mb-10 tracking-tight">Investment Summary</h2>
+                        <div className="glass-card rounded-3xl p-10 lg:sticky lg:top-28 shadow-glass-xl">
+                            <h2 className="text-3xl font-extrabold text-gray-900 mb-10 tracking-tight">Investment Summary</h2>
 
-                            <div className="space-y-6 mb-10 pb-10 border-b border-gray-100">
-                                <div className="flex justify-between items-center text-gray-500 font-bold">
-                                    <span className="text-sm uppercase tracking-wider font-extrabold text-gray-400">Subtotal</span>
-                                    <span className="text-xl font-black text-gray-900">{totalAmount.toLocaleString()} <span className="text-xs">LKR</span></span>
+                            <div className="space-y-5 mb-10 pb-10 border-b border-white/30">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm uppercase tracking-wider font-bold text-gray-400">Subtotal</span>
+                                    <span className="text-xl font-extrabold text-gray-900">{totalAmount.toLocaleString()} <span className="text-xs">LKR</span></span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm uppercase tracking-wider font-extrabold text-gray-400">Handling Fee</span>
-                                    <span className="text-blue-600 font-black tracking-widest text-xs uppercase bg-blue-50 px-3 py-1 rounded-lg border border-blue-100">Included</span>
+                                    <span className="text-sm uppercase tracking-wider font-bold text-gray-400">Handling Fee</span>
+                                    <span className="glass-badge text-accent-dark">Included</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm uppercase tracking-wider font-extrabold text-gray-400">Delivery</span>
-                                    <span className="text-emerald-500 font-black tracking-widest text-[10px] uppercase bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">Free Consultation</span>
+                                    <span className="text-sm uppercase tracking-wider font-bold text-gray-400">Delivery</span>
+                                    <span className="glass-badge text-emerald-600">Free Consultation</span>
                                 </div>
                             </div>
 
-                            <div className="mb-12 bg-blue-600/5 p-8 rounded-3xl border border-blue-600/10">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-black text-blue-600 uppercase tracking-[0.25em] mb-2">Total Amount due</span>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-5xl font-black text-blue-600 tracking-tighter">{totalAmount.toLocaleString()}</span>
-                                        <span className="text-sm font-black text-blue-600 uppercase tracking-widest">LKR</span>
-                                    </div>
+                            <div className="mb-12 glass rounded-3xl p-8 border-l-4 border-accent">
+                                <span className="text-xs font-bold text-accent uppercase tracking-widest mb-2 block">Total Amount Due</span>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-5xl font-extrabold bg-clip-text text-transparent bg-accent-gradient tracking-tighter">{totalAmount.toLocaleString()}</span>
+                                    <span className="text-sm font-bold text-accent uppercase tracking-widest">LKR</span>
                                 </div>
                             </div>
 
-                            <div className="space-y-5">
-                                <button
-                                    onClick={handleConfirmOrder}
-                                    disabled={!isFormReady || loading}
-                                    className="w-full py-6 bg-blue-600 text-white rounded-[1.5rem] font-black text-xl hover:bg-blue-700 transition-all duration-300 shadow-xl shadow-blue-400/20 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98] transform flex items-center justify-center gap-3"
-                                >
+                            <div className="space-y-4">
+                                <button onClick={handleConfirmOrder} disabled={!isFormReady || loading}
+                                    className="w-full py-5 btn-accent rounded-2xl font-extrabold text-lg disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3">
                                     {loading ? (
-                                        <span className="flex items-center justify-center gap-3">
-                                            <div className="animate-spin h-6 w-6 border-4 border-white border-t-transparent rounded-full font-bold"></div>
-                                            SECURELY PROCESSING...
+                                        <span className="flex items-center gap-3">
+                                            <div className="animate-spin h-5 w-5 border-3 border-white border-t-transparent rounded-full"></div>
+                                            PROCESSING...
                                         </span>
-                                    ) : (
-                                        'PROCEED TO PAYMENT'
-                                    )}
+                                    ) : 'PROCEED TO PAYMENT'}
                                 </button>
-                                <button
-                                    onClick={() => navigate('/catalog')}
-                                    className="w-full py-4 text-gray-400 font-black hover:text-blue-600 transition-all duration-300 text-xs tracking-[0.2em] uppercase"
-                                >
+                                <button onClick={() => navigate('/catalog')}
+                                    className="w-full py-3 text-gray-400 font-bold hover:text-accent transition text-xs tracking-widest uppercase">
                                     ← Back to Catalog
                                 </button>
                             </div>
 
-                            <div className="mt-10 flex items-center justify-center gap-6 opacity-30">
-                                <div className="bg-gray-100 h-10 w-16 rounded-lg flex items-center justify-center grayscale text-[10px] font-black italic">VISA</div>
-                                <div className="bg-gray-100 h-10 w-16 rounded-lg flex items-center justify-center grayscale text-[10px] font-black italic">MASTER</div>
-                                <div className="bg-gray-100 h-10 w-16 rounded-lg flex items-center justify-center grayscale text-[10px] font-black italic uppercase">Stripe</div>
+                            <div className="mt-10 flex items-center justify-center gap-4 opacity-30">
+                                <div className="glass h-10 w-16 rounded-lg flex items-center justify-center text-[10px] font-bold italic">VISA</div>
+                                <div className="glass h-10 w-16 rounded-lg flex items-center justify-center text-[10px] font-bold italic">MASTER</div>
+                                <div className="glass h-10 w-16 rounded-lg flex items-center justify-center text-[10px] font-bold italic">Stripe</div>
                             </div>
                         </div>
                     </div>

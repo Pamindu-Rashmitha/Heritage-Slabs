@@ -12,8 +12,6 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-
-        // Simulate payment processing delay
         setTimeout(() => {
             setIsSubmitting(false);
             onPaymentSuccess();
@@ -21,28 +19,25 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-fade-in">
+            <div className="glass-modal rounded-3xl w-full max-w-md overflow-hidden animate-scale-in">
                 {/* Header */}
-                <div className="bg-blue-600 p-6 text-white text-center relative">
-                    <button
-                        onClick={onClose}
-                        className="absolute top-4 right-4 text-white/80 hover:text-white transition"
-                    >
+                <div className="bg-accent-gradient p-6 text-white text-center relative">
+                    <button onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white transition">
                         <X size={24} />
                     </button>
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
                         <CreditCard size={32} />
                     </div>
                     <h2 className="text-2xl font-bold">Secure Payment</h2>
-                    <p className="text-blue-100 mt-1">Heritage Slabs Checkout</p>
+                    <p className="text-white/70 mt-1">Heritage Slabs Checkout</p>
                 </div>
 
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
                     <div className="text-center mb-6">
-                        <p className="text-gray-500 text-sm uppercase tracking-wider font-semibold">Total Amount</p>
-                        <p className="text-4xl font-extrabold text-gray-900">{totalAmount.toLocaleString()} LKR</p>
+                        <p className="text-gray-400 text-sm uppercase tracking-wider font-bold">Total Amount</p>
+                        <p className="text-4xl font-extrabold bg-clip-text text-transparent bg-accent-gradient">{totalAmount.toLocaleString()} LKR</p>
                     </div>
 
                     <div className="space-y-4">
@@ -53,7 +48,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                                     type="text"
                                     value={cardNumber}
                                     onChange={(e) => setCardNumber(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-medium text-gray-800"
+                                    className="w-full px-4 py-3 glass-input rounded-xl font-medium text-gray-800"
                                     placeholder="0000 0000 0000 0000"
                                     required
                                 />
@@ -70,7 +65,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                                     type="text"
                                     value={expiry}
                                     onChange={(e) => setExpiry(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-medium text-gray-800"
+                                    className="w-full px-4 py-3 glass-input rounded-xl font-medium text-gray-800"
                                     placeholder="MM/YY"
                                     required
                                 />
@@ -81,7 +76,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                                     type="text"
                                     value={cvc}
                                     onChange={(e) => setCvc(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-medium text-gray-800"
+                                    className="w-full px-4 py-3 glass-input rounded-xl font-medium text-gray-800"
                                     placeholder="000"
                                     required
                                 />
@@ -92,7 +87,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, totalAmount }) => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
+                        className="w-full py-4 btn-accent rounded-xl text-lg flex items-center justify-center gap-2 group disabled:opacity-60"
                     >
                         {isSubmitting ? (
                             <>

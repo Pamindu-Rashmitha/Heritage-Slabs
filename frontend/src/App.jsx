@@ -57,7 +57,7 @@ function App() {
         <AuthProvider>
             <CartProvider>
                 <Router>
-                    <div className="min-h-screen bg-white">
+                    <div className="min-h-screen">
                         <NavbarWrapper />
                         <Routes>
                             <Route path="/" element={<LandingPageWrapper />} />

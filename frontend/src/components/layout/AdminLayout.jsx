@@ -7,19 +7,27 @@ import { AuthContext } from '../../context/AuthContext';
 export default function AdminLayout({ children }) {
     const { user, loading } = useContext(AuthContext);
 
-    // Show a loading screen while checking for the token
-    if (loading) return <div className="p-10 text-center">Loading...</div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+        </div>
+    );
 
-    // Security Check: If no user is logged in, kick them back to the login page!
     if (!user) return <Navigate to="/login" />;
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-100">
-            <Sidebar />
+        <div className="flex h-screen overflow-hidden">
+            {/* Floating Sidebar */}
+            <div className="p-3 pr-0 flex-shrink-0">
+                <Sidebar />
+            </div>
             <div className="flex flex-col flex-1 overflow-hidden">
-                <Navbar />
-                {/* The 'children' is where the actual page content (like the Dashboard) will go */}
-                <main className="flex-1 p-6 overflow-y-auto">
+                {/* Floating Navbar */}
+                <div className="p-3 pb-0">
+                    <Navbar />
+                </div>
+                {/* Main Content */}
+                <main className="flex-1 p-4 overflow-y-auto">
                     {children}
                 </main>
             </div>

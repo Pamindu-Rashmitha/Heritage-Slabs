@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
+import { UserPlus, Eye, EyeOff } from 'lucide-react';
 
 export default function Register() {
     const [name, setName] = useState('');
@@ -16,13 +17,15 @@ export default function Register() {
         confirmPassword: '',
     });
 
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const navigate = useNavigate();
 
     const validate = () => {
         const errors = { name: '', email: '', password: '', confirmPassword: '' };
         let isValid = true;
 
-        // Name: at least 3 characters, letters and spaces only
         if (!name.trim()) {
             errors.name = 'Name is required';
             isValid = false;
@@ -34,7 +37,6 @@ export default function Register() {
             isValid = false;
         }
 
-        // Email: valid format
         if (!email.trim()) {
             errors.email = 'Email is required';
             isValid = false;
@@ -43,7 +45,6 @@ export default function Register() {
             isValid = false;
         }
 
-        // Password: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
         if (!password) {
             errors.password = 'Password is required';
             isValid = false;
@@ -64,7 +65,6 @@ export default function Register() {
             isValid = false;
         }
 
-        // Confirm Password: must match
         if (!confirmPassword) {
             errors.confirmPassword = 'Please confirm your password';
             isValid = false;
@@ -82,27 +82,23 @@ export default function Register() {
         setError('');
         setSuccess('');
 
-        // Run validations
         if (!validate()) {
             return;
         }
 
         try {
-            // Send the data to your Spring Boot backend
             await api.post('/auth/register', {
                 name,
                 email,
                 password
             });
 
-            // Show success message and redirect to login
             setSuccess('Registration successful! Redirecting to login...');
             setTimeout(() => {
                 navigate('/login');
             }, 2000);
 
         } catch (err) {
-            // Capture errors from the backend (like "Email already taken")
             if (err.response && err.response.data) {
                 setError(err.response.data);
             } else {
@@ -111,76 +107,110 @@ export default function Register() {
         }
     };
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-                <h2 className="text-3xl font-bold text-center text-gray-800">Create an Account</h2>
-                <p className="text-center text-gray-500">Join Heritage Slabs ERP</p>
+    const inputClass = (fieldError) =>
+        `w-full px-4 py-3 glass-input rounded-xl text-gray-800 placeholder:text-gray-400 ${fieldError ? 'border-red-400 focus:border-red-400 focus:shadow-[0_0_0_3px_rgba(248,113,113,0.15)]' : ''}`;
 
-                {/* Show error or success messages */}
-                {error && <div className="p-3 text-sm text-red-700 bg-red-100 rounded">{error}</div>}
-                {success && <div className="p-3 text-sm text-green-700 bg-green-100 rounded">{success}</div>}
+    return (
+        <div className="flex items-center justify-center min-h-screen px-4 py-8">
+            <div className="w-full max-w-md glass-modal p-10 rounded-3xl space-y-6 animate-scale-in">
+                {/* Brand */}
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-accent-gradient rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow-teal">
+                        <UserPlus className="w-8 h-8 text-white" />
+                    </div>
+                    <h2 className="text-3xl font-extrabold text-gray-900">Create an Account</h2>
+                    <p className="text-gray-500 mt-1 font-medium">Join Heritage Slabs ERP</p>
+                </div>
+
+                {error && (
+                    <div className="p-3 text-sm text-red-700 bg-red-100/70 backdrop-blur-sm rounded-xl border border-red-200/50">
+                        {error}
+                    </div>
+                )}
+                {success && (
+                    <div className="p-3 text-sm text-green-700 bg-green-100/70 backdrop-blur-sm rounded-xl border border-green-200/50">
+                        {success}
+                    </div>
+                )}
 
                 <form className="space-y-4" onSubmit={handleSubmit}>
                     <div>
-                        <label className="block mb-1 text-sm font-medium text-gray-700">Full Name</label>
+                        <label className="block mb-2 text-sm font-semibold text-gray-700">Full Name</label>
                         <input
                             type="text"
-                            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            className={inputClass(fieldErrors.name)}
                             placeholder="Kapila Dissanayake"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
-                        {fieldErrors.name && <p className="mt-1 text-xs text-red-600">{fieldErrors.name}</p>}
+                        {fieldErrors.name && <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.name}</p>}
                     </div>
 
                     <div>
-                        <label className="block mb-1 text-sm font-medium text-gray-700">Email Address</label>
+                        <label className="block mb-2 text-sm font-semibold text-gray-700">Email Address</label>
                         <input
                             type="email"
-                            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${fieldErrors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            className={inputClass(fieldErrors.email)}
                             placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                        {fieldErrors.email && <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>}
+                        {fieldErrors.email && <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.email}</p>}
                     </div>
 
                     <div>
-                        <label className="block mb-1 text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            type="password"
-                            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${fieldErrors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        {fieldErrors.password && <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>}
+                        <label className="block mb-2 text-sm font-semibold text-gray-700">Password</label>
+                        <div className="relative group">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className={`${inputClass(fieldErrors.password)} pr-12`}
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
+                        {fieldErrors.password && <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.password}</p>}
                     </div>
 
                     <div>
-                        <label className="block mb-1 text-sm font-medium text-gray-700">Confirm Password</label>
-                        <input
-                            type="password"
-                            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${fieldErrors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="••••••••"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
-                        {fieldErrors.confirmPassword && <p className="mt-1 text-xs text-red-600">{fieldErrors.confirmPassword}</p>}
+                        <label className="block mb-2 text-sm font-semibold text-gray-700">Confirm Password</label>
+                        <div className="relative group">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                className={`${inputClass(fieldErrors.confirmPassword)} pr-12`}
+                                placeholder="••••••••"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
+                        {fieldErrors.confirmPassword && <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.confirmPassword}</p>}
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full py-3 btn-accent rounded-xl text-lg mt-2"
                     >
                         Register
                     </button>
                 </form>
 
-                <p className="text-sm text-center text-gray-600">
+                <p className="text-sm text-center text-gray-500">
                     Already have an account?{' '}
-                    <Link to="/login" className="font-medium text-blue-600 hover:underline">
+                    <Link to="/login" className="font-bold text-accent hover:text-accent-dark transition-colors">
                         Sign in here
                     </Link>
                 </p>

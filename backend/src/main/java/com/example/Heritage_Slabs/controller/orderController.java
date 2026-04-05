@@ -53,12 +53,14 @@ public class orderController {
 
     @GetMapping("/return")
     public void paymentReturn(HttpServletResponse response) throws IOException {
-        response.sendRedirect(frontendUrl + "/payment/success");
+        String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+        response.sendRedirect(baseUrl + "/payment/success");
     }
 
     @GetMapping("/cancel")
     public void paymentCancel(HttpServletResponse response) throws IOException {
-        response.sendRedirect(frontendUrl + "/cart");
+        String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+        response.sendRedirect(baseUrl + "/cart");
     }
 
     @GetMapping
