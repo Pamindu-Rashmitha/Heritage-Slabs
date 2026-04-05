@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import orderService from '../services/orderService';
-import { ShoppingBag, ChevronRight, Package, Calendar, Clock, MapPin, Truck, Download } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ShoppingBag, ChevronRight, Package, Calendar, Clock, MapPin, Truck, Download, CreditCard, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/layout/AdminLayout';
 
 const OrdersList = () => {
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [deletingId, setDeletingId] = useState(null);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -53,6 +55,45 @@ const OrdersList = () => {
         } catch (err) {
             console.error("Failed to download invoice", err);
             alert("Sorry, there was an issue downloading the invoice. Please try again later.");
+        }
+    };
+
+    const handleProceedPayment = async (orderId) => {
+        try {
+            const payhereData = await orderService.initiatePayment(orderId);
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://sandbox.payhere.lk/pay/checkout';
+
+            Object.keys(payhereData).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = payhereData[key];
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        } catch (err) {
+            console.error("Failed to initiate payment", err);
+            alert("Failed to initiate payment. Please try again.");
+        }
+    };
+
+    const handleDeleteOrder = async (orderId) => {
+        if (!window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) return;
+
+        setDeletingId(orderId);
+        try {
+            await orderService.deleteOrder(orderId);
+            setOrders(prev => prev.filter(o => o.id !== orderId));
+        } catch (err) {
+            console.error("Failed to delete order", err);
+            alert("Failed to delete order. Please try again.");
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -174,7 +215,27 @@ const OrdersList = () => {
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                                {order.status?.toLowerCase() === 'pending' && (
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => handleProceedPayment(order.id)}
+                                            className="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-lg text-xs font-bold uppercase transition-all shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300"
+                                        >
+                                            <CreditCard className="w-4 h-4" />
+                                            Pay Now
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteOrder(order.id)}
+                                            disabled={deletingId === order.id}
+                                            className="inline-flex items-center gap-2 text-red-600 hover:text-white bg-white hover:bg-red-600 border border-red-200 hover:border-red-600 px-4 py-2.5 rounded-lg text-xs font-bold uppercase transition-all disabled:opacity-50"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            {deletingId === order.id ? 'Deleting...' : 'Delete'}
+                                        </button>
+                                    </div>
+                                )}
+                                {order.status?.toLowerCase() !== 'pending' && <div />}
                                 <button
                                     onClick={() => handleDownloadInvoice(order.id)}
                                     className="inline-flex items-center gap-2 text-gray-700 hover:text-blue-600 bg-white border border-gray-200 hover:border-blue-200 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors shadow-sm"

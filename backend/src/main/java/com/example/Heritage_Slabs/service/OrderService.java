@@ -181,6 +181,22 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+
+        if (order.getStatus() != Status.Pending) {
+            throw new RuntimeException("Only pending orders can be deleted");
+        }
+
+        // Delete order items first
+        List<OrderItem> items = orderItemRepository.findByOrderId(id);
+        orderItemRepository.deleteAll(items);
+
+        orderRepository.delete(order);
+    }
+
     public byte[] generateInvoice(Long orderId) {
         Order order = getOrderById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
