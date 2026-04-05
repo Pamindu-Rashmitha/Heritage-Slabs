@@ -186,8 +186,8 @@ public class OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
 
-        if (order.getStatus() != Status.Pending) {
-            throw new RuntimeException("Only pending orders can be deleted");
+        if (order.getStatus() != Status.Pending && order.getStatus() != Status.Failed) {
+            throw new RuntimeException("Only pending or failed orders can be deleted");
         }
 
         // Delete order items first

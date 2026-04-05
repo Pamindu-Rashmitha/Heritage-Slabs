@@ -235,7 +235,19 @@ const OrdersList = () => {
                                         </button>
                                     </div>
                                 )}
-                                {order.status?.toLowerCase() !== 'pending' && <div />}
+                                {order.status?.toLowerCase() === 'failed' && (
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => handleDeleteOrder(order.id)}
+                                            disabled={deletingId === order.id}
+                                            className="inline-flex items-center gap-2 text-red-600 hover:text-white bg-white hover:bg-red-600 border border-red-200 hover:border-red-600 px-4 py-2.5 rounded-lg text-xs font-bold uppercase transition-all disabled:opacity-50"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            {deletingId === order.id ? 'Deleting...' : 'Delete'}
+                                        </button>
+                                    </div>
+                                )}
+                                {order.status?.toLowerCase() !== 'pending' && order.status?.toLowerCase() !== 'failed' && <div />}
                                 <button
                                     onClick={() => handleDownloadInvoice(order.id)}
                                     className="inline-flex items-center gap-2 text-gray-700 hover:text-blue-600 bg-white border border-gray-200 hover:border-blue-200 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors shadow-sm"
