@@ -44,6 +44,11 @@ const orderService = {
         link.click();
         link.remove();
         window.URL.revokeObjectURL(url);
+    },
+
+    deleteOrder: async (id) => {
+        const response = await api.delete(`/orders/${id}`);
+        return response.data;
     }
 };
 

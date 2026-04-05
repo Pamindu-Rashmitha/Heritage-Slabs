@@ -35,6 +35,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ModelMapper modelMapper;
+    private final EmailService emailService;
 
     @Value("${payhere.merchant.id}")
     private String merchant_id;
@@ -110,9 +111,9 @@ public class OrderService {
         result.put("first_name", order.getUser_id().getName());
         result.put("last_name", "");
         result.put("email", order.getUser_id().getEmail());
-        result.put("phone", "");
+        result.put("phone", order.getPhoneNumber());
         result.put("address", order.getAddress());
-        result.put("city", "");
+        result.put("city", order.getCity());
         result.put("country", "Sri Lanka");
 
         // Generate hash using the same formatted amount
@@ -169,11 +170,31 @@ public class OrderService {
         // 3. Update order status
         if (statusCode.equals("2")) { // 2 = SUCCESS in PayHere
             order.setStatus(Status.Paid);
+            Order savedOrder = orderRepository.save(order);
+            // Send confirmation email asynchronously
+            emailService.sendOrderConfirmationEmail(savedOrder);
+            return savedOrder;
         } else {
             order.setStatus(Status.Failed);
         }
 
         return orderRepository.save(order);
+    }
+
+    @Transactional
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+
+        if (order.getStatus() != Status.Pending && order.getStatus() != Status.Failed) {
+            throw new RuntimeException("Only pending or failed orders can be deleted");
+        }
+
+        // Delete order items first
+        List<OrderItem> items = orderItemRepository.findByOrderId(id);
+        orderItemRepository.deleteAll(items);
+
+        orderRepository.delete(order);
     }
 
     public byte[] generateInvoice(Long orderId) {
