@@ -171,7 +171,7 @@ const OrdersList = () => {
                             </div>
 
                             <div className="p-4 border-t border-white/20 flex flex-wrap items-center justify-between gap-3">
-                                {order.status?.toLowerCase() === 'pending' && (
+                                {order.status?.toLowerCase() === 'pending' && user?.role === 'USER' && (
                                     <div className="flex items-center gap-3">
                                         <button onClick={() => handleProceedPayment(order.id)}
                                             className="inline-flex items-center gap-2 btn-accent px-5 py-2.5 rounded-xl text-xs font-bold uppercase">
