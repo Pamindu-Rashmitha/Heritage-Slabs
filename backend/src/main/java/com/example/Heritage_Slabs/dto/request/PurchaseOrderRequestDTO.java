@@ -18,12 +18,22 @@ public class PurchaseOrderRequestDTO {
     private LocalDate expectedDelivery;
 
     @NotNull(message = "Quantity is required")
-    @Positive(message = "Quantity must be greater than zero")
+    @jakarta.validation.constraints.Min(value = 10, message = "Quantity must be at least 10")
     private Integer quantity;
 
     private String status; // PENDING, DELIVERED, CANCELLED
 
+    @FutureOrPresent(message = "Order date must be today or in the future")
+    private LocalDate orderDate;
+
     // Getters and Setters
+    public LocalDate getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDate orderDate) {
+        this.orderDate = orderDate;
+    }
     public Long getSupplierId() {
         return supplierId;
     }

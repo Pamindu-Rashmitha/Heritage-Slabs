@@ -31,22 +31,40 @@ const MaterialIntakeManagement = () => {
         finally { setLoading(false); }
     };
 
+    const getLocalDateString = () => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
     const handleOpenAddModal = () => {
-        setFormData({ purchaseOrderId: selectedOrderId || (orders.length > 0 ? orders[0].id : ''), arrivalDate: new Date().toISOString().split('T')[0], quantityReceived: '', conditionNotes: '' });
+        setFormData({ purchaseOrderId: selectedOrderId || (orders.length > 0 ? orders[0].id : ''), arrivalDate: getLocalDateString(), quantityReceived: '', conditionNotes: '' });
         setIsModalOpen(true);
     };
 
-    const handleInputChange = (e) => { const { name, value } = e.target; setFormData({ ...formData, [name]: value }); };
+    const showErrorMsg = (msg) => {
+        setError(msg);
+        setTimeout(() => setError(''), 5000);
+    };
+
+    const handleInputChange = (e) => { 
+        const { name, value } = e.target; 
+        if (name === 'quantityReceived') {
+            setFormData({ ...formData, quantityReceived: value.replace(/\D/g, '') });
+        } else {
+            setFormData({ ...formData, [name]: value }); 
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault(); setIsSubmitting(true); setError('');
-        if (new Date(formData.arrivalDate) > new Date()) { setError('Arrival date cannot be in the future.'); setIsSubmitting(false); return; }
+        if (new Date(formData.arrivalDate) < new Date(new Date().toDateString())) { showErrorMsg('Arrival date cannot be in the past.'); setIsSubmitting(false); return; }
         try {
             const newIntake = await supplierService.logMaterialIntake(formData);
             if (parseInt(selectedOrderId) === parseInt(formData.purchaseOrderId)) { setIntakes([...intakes, newIntake]); }
             else { setSelectedOrderId(formData.purchaseOrderId); }
             setIsModalOpen(false);
-        } catch (err) { alert(err.response?.data || 'Failed to log intake.'); }
+            await loadOrders();
+        } catch (err) { showErrorMsg(err.response?.data || 'Failed to log intake.'); }
         finally { setIsSubmitting(false); }
     };
 
@@ -76,7 +94,17 @@ const MaterialIntakeManagement = () => {
                         </div>
                     </div>
 
-                    {error && <div className="glass-card bg-red-50/50 border-red-200/50 text-red-600 p-3 rounded-xl mb-4 font-semibold">{error}</div>}
+                    {error && (
+                        <div className="fixed top-6 right-6 z-[100] max-w-sm w-full animate-fade-in shadow-2xl">
+                            <div className="flex items-start gap-3 glass-card bg-red-50/95 backdrop-blur-md border-red-300 text-red-700 p-4 rounded-2xl">
+                                <X className="w-5 h-5 shrink-0 mt-0.5 text-red-500" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium whitespace-pre-wrap">{error}</p>
+                                </div>
+                                <button onClick={() => setError('')} className="p-1 hover:bg-red-100 rounded-lg transition-colors"><X size={16}/></button>
+                            </div>
+                        </div>
+                    )}
 
                     {loading ? (
                         <div className="py-10 text-center text-gray-500">
@@ -136,18 +164,18 @@ const MaterialIntakeManagement = () => {
                                 <label className="block mb-1 text-sm font-semibold text-gray-600">Target Purchase Order</label>
                                 <select name="purchaseOrderId" required value={formData.purchaseOrderId} onChange={handleInputChange}
                                     className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium appearance-none cursor-pointer">
-                                    <option value="" disabled>-- Select order --</option>
-                                    {orders.map(o => (<option key={o.id} value={o.id}>PO-{o.id} - {o.productName || 'Unknown'} (Qty: {o.quantity})</option>))}
+                                    <option value="" disabled>-- Select pending order --</option>
+                                    {orders.filter(o => o.status === 'PENDING').map(o => (<option key={o.id} value={o.id}>PO-{o.id} - {o.productName || 'Unknown'} (Qty: {o.quantity})</option>))}
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block mb-1 text-sm font-semibold text-gray-600">Arrival Date</label>
-                                    <input type="date" name="arrivalDate" required value={formData.arrivalDate} onChange={handleInputChange} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
+                                    <input type="date" name="arrivalDate" required value={formData.arrivalDate} onChange={handleInputChange} min={getLocalDateString()} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
                                 </div>
                                 <div>
                                     <label className="block mb-1 text-sm font-semibold text-gray-600">Quantity Received</label>
-                                    <input type="number" name="quantityReceived" required value={formData.quantityReceived} onChange={handleInputChange} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
+                                    <input type="number" name="quantityReceived" min="1" step="1" required value={formData.quantityReceived} onChange={handleInputChange} onKeyDown={(e) => { if (!/^[0-9]$/.test(e.key) && !['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete', 'Tab'].includes(e.key)) e.preventDefault(); }} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
                                 </div>
                             </div>
                             <div>

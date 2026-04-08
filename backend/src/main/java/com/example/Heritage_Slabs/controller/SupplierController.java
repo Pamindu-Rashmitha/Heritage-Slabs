@@ -26,33 +26,33 @@ public class SupplierController {
     // --- Supplier Endpoints ---
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<SupplierResponseDTO> createSupplier(@Valid @RequestBody SupplierRequestDTO dto) {
         SupplierResponseDTO response = supplierService.createSupplier(dto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<SupplierResponseDTO>> getAllSuppliers() {
         return ResponseEntity.ok(supplierService.getAllSuppliers());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<SupplierResponseDTO> getSupplierById(@PathVariable Long id) {
         return ResponseEntity.ok(supplierService.getSupplierById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<SupplierResponseDTO> updateSupplier(@PathVariable Long id,
             @Valid @RequestBody SupplierRequestDTO dto) {
         return ResponseEntity.ok(supplierService.updateSupplier(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteSupplier(@PathVariable Long id) {
         supplierService.deleteSupplier(id);
         return ResponseEntity.noContent().build();
@@ -61,7 +61,7 @@ public class SupplierController {
     // --- Purchase Order Endpoints ---
 
     @PostMapping("/purchase-orders")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<PurchaseOrderResponseDTO> createPurchaseOrder(
             @Valid @RequestBody PurchaseOrderRequestDTO dto) {
         PurchaseOrderResponseDTO response = supplierService.createPurchaseOrder(dto);
@@ -69,29 +69,40 @@ public class SupplierController {
     }
 
     @GetMapping("/purchase-orders")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<PurchaseOrderResponseDTO>> getAllPurchaseOrders() {
         return ResponseEntity.ok(supplierService.getAllPurchaseOrders());
     }
 
     @GetMapping("/{supplierId}/purchase-orders")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<PurchaseOrderResponseDTO>> getPurchaseOrdersBySupplier(@PathVariable Long supplierId) {
         return ResponseEntity.ok(supplierService.getPurchaseOrdersBySupplier(supplierId));
     }
 
     @PutMapping("/purchase-orders/{id}/status")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<PurchaseOrderResponseDTO> updatePurchaseOrderStatus(
             @PathVariable Long id,
             @RequestParam String status) {
         return ResponseEntity.ok(supplierService.updatePurchaseOrderStatus(id, status));
     }
 
+    @DeleteMapping("/purchase-orders/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deletePurchaseOrder(@PathVariable Long id) {
+        try {
+            supplierService.deletePurchaseOrder(id);
+            return ResponseEntity.noContent().build();
+        } catch(Exception e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
     // --- Material Intake Endpoints ---
 
     @PostMapping("/material-intakes")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<MaterialIntakeResponseDTO> logMaterialIntake(
             @Valid @RequestBody MaterialIntakeRequestDTO dto) {
         MaterialIntakeResponseDTO response = supplierService.logMaterialIntake(dto);
@@ -99,7 +110,7 @@ public class SupplierController {
     }
 
     @GetMapping("/purchase-orders/{purchaseOrderId}/material-intakes")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<MaterialIntakeResponseDTO>> getIntakesByPurchaseOrder(
             @PathVariable Long purchaseOrderId) {
         return ResponseEntity.ok(supplierService.getIntakesByPurchaseOrder(purchaseOrderId));

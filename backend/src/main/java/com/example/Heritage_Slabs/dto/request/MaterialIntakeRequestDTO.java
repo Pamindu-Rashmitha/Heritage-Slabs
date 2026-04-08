@@ -14,7 +14,17 @@ public class MaterialIntakeRequestDTO {
 
     private String conditionNotes;
 
+    @jakarta.validation.constraints.FutureOrPresent(message = "Arrival date must be today or in the future")
+    private java.time.LocalDate arrivalDate;
+
     // Getters and Setters
+    public java.time.LocalDate getArrivalDate() {
+        return arrivalDate;
+    }
+
+    public void setArrivalDate(java.time.LocalDate arrivalDate) {
+        this.arrivalDate = arrivalDate;
+    }
     public Long getPurchaseOrderId() {
         return purchaseOrderId;
     }

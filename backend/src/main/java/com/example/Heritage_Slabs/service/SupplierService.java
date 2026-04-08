@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class SupplierService {
 
     @Autowired
@@ -41,8 +42,8 @@ public class SupplierService {
     // --- Supplier Methods ---
 
     public SupplierResponseDTO createSupplier(SupplierRequestDTO dto) {
-        Supplier supplier = new Supplier(dto.getName(), dto.getContactInfo(), dto.getSuppliedMaterial(),
-                dto.getRating());
+        Supplier supplier = new Supplier(dto.getName(), dto.getSuppliedMaterial(),
+                dto.getRating(), dto.getEmail(), dto.getPhone());
         Supplier savedSupplier = supplierRepository.save(supplier);
         return mapToSupplierResponseDTO(savedSupplier);
     }
@@ -64,9 +65,10 @@ public class SupplierService {
                 .orElseThrow(() -> new RuntimeException("Supplier not found with id: " + id));
 
         supplier.setName(dto.getName());
-        supplier.setContactInfo(dto.getContactInfo());
         supplier.setSuppliedMaterial(dto.getSuppliedMaterial());
         supplier.setRating(dto.getRating());
+        supplier.setEmail(dto.getEmail());
+        supplier.setPhone(dto.getPhone());
 
         Supplier updatedSupplier = supplierRepository.save(supplier);
         return mapToSupplierResponseDTO(updatedSupplier);
@@ -139,6 +141,13 @@ public class SupplierService {
         }
     }
 
+    public void deletePurchaseOrder(Long id) {
+        if (!purchaseOrderRepository.existsById(id)) {
+            throw new RuntimeException("Purchase Order not found with id: " + id);
+        }
+        purchaseOrderRepository.deleteById(id);
+    }
+
     // --- Material Intake Methods ---
 
     @Transactional
@@ -149,7 +158,7 @@ public class SupplierService {
 
         MaterialIntake intake = new MaterialIntake(
                 order,
-                LocalDate.now(),
+                dto.getArrivalDate() != null ? dto.getArrivalDate() : LocalDate.now(),
                 dto.getQuantityReceived(),
                 dto.getConditionNotes());
 
@@ -158,7 +167,9 @@ public class SupplierService {
         // Update Product Stock using the direct FK link on the Purchase Order
         Product linkedProduct = order.getProduct();
         if (linkedProduct != null) {
-            linkedProduct.setStockQuantity(linkedProduct.getStockQuantity() + dto.getQuantityReceived());
+            Integer currentStock = linkedProduct.getStockQuantity();
+            if (currentStock == null) currentStock = 0;
+            linkedProduct.setStockQuantity(currentStock + dto.getQuantityReceived());
             productRepository.save(linkedProduct);
         }
 
@@ -181,9 +192,10 @@ public class SupplierService {
         SupplierResponseDTO dto = new SupplierResponseDTO();
         dto.setId(supplier.getId());
         dto.setName(supplier.getName());
-        dto.setContactInfo(supplier.getContactInfo());
         dto.setSuppliedMaterial(supplier.getSuppliedMaterial());
         dto.setRating(supplier.getRating());
+        dto.setEmail(supplier.getEmail());
+        dto.setPhone(supplier.getPhone());
         return dto;
     }
 

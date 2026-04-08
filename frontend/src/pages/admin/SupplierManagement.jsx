@@ -15,7 +15,7 @@ const SupplierManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [formData, setFormData] = useState({ name: '', contactInfo: '', suppliedMaterial: '', rating: 5.0 });
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '', suppliedMaterial: '', rating: 5.0 });
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -37,24 +37,49 @@ const SupplierManagement = () => {
     };
 
     const handleEdit = (supplier) => {
-        setFormData({ name: supplier.name, contactInfo: supplier.contactInfo, suppliedMaterial: supplier.suppliedMaterial, rating: supplier.rating || 5.0 });
+        setFormData({ name: supplier.name, email: supplier.email || '', phone: supplier.phone || '', suppliedMaterial: supplier.suppliedMaterial, rating: supplier.rating || 5.0 });
         setEditingId(supplier.id); setIsModalOpen(true);
     };
 
     const handleOpenAddModal = () => {
-        setFormData({ name: '', contactInfo: '', suppliedMaterial: '', rating: 5.0 });
+        setFormData({ name: '', email: '', phone: '', suppliedMaterial: '', rating: 5.0 });
         setEditingId(null); setIsModalOpen(true);
     };
 
-    const handleInputChange = (e) => { const { name, value } = e.target; setFormData({ ...formData, [name]: value }); };
+    const showErrorMsg = (msg) => {
+        setError(msg);
+        setTimeout(() => setError(''), 5000);
+    };
+
+    const handleInputChange = (e) => { 
+        const { name, value } = e.target; 
+        if (name === 'phone') {
+            const numericValue = value.replace(/\D/g, '');
+            if (numericValue.length <= 10) {
+                setFormData({ ...formData, phone: numericValue });
+            }
+        } else {
+            setFormData({ ...formData, [name]: value }); 
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault(); setIsSubmitting(true); setError('');
         try {
-            if (editingId) { const updated = await supplierService.updateSupplier(editingId, formData); setSuppliers(suppliers.map(s => s.id === editingId ? updated : s)); }
-            else { const newS = await supplierService.createSupplier(formData); setSuppliers([...suppliers, newS]); }
+            const payload = { ...formData, rating: parseFloat(formData.rating) };
+            if (editingId) { const updated = await supplierService.updateSupplier(editingId, payload); setSuppliers(suppliers.map(s => s.id === editingId ? updated : s)); }
+            else { const newS = await supplierService.createSupplier(payload); setSuppliers([...suppliers, newS]); }
             setIsModalOpen(false);
-        } catch (err) { alert(err.response?.data || 'Failed to save supplier.'); }
+        } catch (err) { 
+            console.error("Save error:", err);
+            const errData = err.response?.data;
+            if (typeof errData === 'object' && errData !== null) { 
+                // Spring Boot Validation errors often come as { field: "message", ... } or { error: "...", message: "..." }
+                const messages = Object.values(errData).filter(v => typeof v === 'string');
+                showErrorMsg(messages.join('\n') || JSON.stringify(errData)); 
+            }
+            else { showErrorMsg(errData || 'Failed to save supplier.'); }
+        }
         finally { setIsSubmitting(false); }
     };
 
@@ -77,7 +102,17 @@ const SupplierManagement = () => {
                         </button>
                     </div>
 
-                    {error && <div className="glass-card bg-red-50/50 border-red-200/50 text-red-600 p-3 rounded-xl mb-4 font-semibold">{error}</div>}
+                    {error && (
+                        <div className="fixed top-6 right-6 z-[100] max-w-sm w-full animate-fade-in shadow-2xl">
+                            <div className="flex items-start gap-3 glass-card bg-red-50/95 backdrop-blur-md border-red-300 text-red-700 p-4 rounded-2xl">
+                                <X className="w-5 h-5 shrink-0 mt-0.5 text-red-500" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium whitespace-pre-wrap">{error}</p>
+                                </div>
+                                <button onClick={() => setError('')} className="p-1 hover:bg-red-100 rounded-lg transition-colors"><X size={16}/></button>
+                            </div>
+                        </div>
+                    )}
 
                     {loading ? (
                         <div className="py-10 text-center text-gray-500">
@@ -91,7 +126,8 @@ const SupplierManagement = () => {
                                     <tr className="border-b border-white/30">
                                         <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-left">ID</th>
                                         <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-left">Supplier Name</th>
-                                        <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-left">Contact Info</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-left">Email</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-left">Phone</th>
                                         <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-left">Material Type</th>
                                         <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-left">Rating</th>
                                         <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Actions</th>
@@ -105,7 +141,8 @@ const SupplierManagement = () => {
                                             <tr key={supplier.id} className="hover:bg-white/20 transition-colors">
                                                 <td className="px-6 py-3 text-sm font-mono text-gray-500">#{supplier.id}</td>
                                                 <td className="px-6 py-3 text-sm font-bold text-gray-800">{supplier.name}</td>
-                                                <td className="px-6 py-3 text-sm text-gray-600">{supplier.contactInfo}</td>
+                                                <td className="px-6 py-3 text-sm text-gray-600">{supplier.email || 'N/A'}</td>
+                                                <td className="px-6 py-3 text-sm text-gray-600">{supplier.phone || 'N/A'}</td>
                                                 <td className="px-6 py-3"><span className="glass-badge text-purple-700 bg-purple-100/50 border-purple-200/50">{supplier.suppliedMaterial}</span></td>
                                                 <td className="px-6 py-3">
                                                     <div className="flex items-center gap-1 text-yellow-500">
@@ -141,9 +178,14 @@ const SupplierManagement = () => {
                                     className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" placeholder="e.g., Global Stone Providers" />
                             </div>
                             <div>
-                                <label className="block mb-1 text-sm font-semibold text-gray-600">Contact Info</label>
-                                <input type="text" name="contactInfo" required value={formData.contactInfo} onChange={handleInputChange}
-                                    className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" placeholder="+94 77 123 4567" />
+                                <label className="block mb-1 text-sm font-semibold text-gray-600">Email</label>
+                                <input type="email" name="email" required value={formData.email} onChange={handleInputChange}
+                                    className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" placeholder="supplier@example.com" />
+                            </div>
+                            <div>
+                                <label className="block mb-1 text-sm font-semibold text-gray-600">Phone</label>
+                                <input type="text" name="phone" required pattern="\d{10}" title="Please enter exactly 10 digits" value={formData.phone} onChange={handleInputChange} minLength="10" maxLength="10"
+                                    className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" placeholder="0771234567" />
                             </div>
                             <div>
                                 <label className="block mb-1 text-sm font-semibold text-gray-600">Supplied Material Type</label>
