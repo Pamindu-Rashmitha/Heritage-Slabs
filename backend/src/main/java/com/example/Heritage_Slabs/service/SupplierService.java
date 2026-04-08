@@ -127,13 +127,44 @@ public class SupplierService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public PurchaseOrderResponseDTO updatePurchaseOrderStatus(Long id, String statusString) {
         PurchaseOrder order = purchaseOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Purchase Order not found with id: " + id));
 
         try {
-            PurchaseOrderStatus status = PurchaseOrderStatus.valueOf(statusString.toUpperCase());
-            order.setStatus(status);
+            PurchaseOrderStatus newStatus = PurchaseOrderStatus.valueOf(statusString.toUpperCase());
+            PurchaseOrderStatus oldStatus = order.getStatus();
+
+            // If transitioning TO DELIVERED, increment stock
+            if (newStatus == PurchaseOrderStatus.DELIVERED && oldStatus != PurchaseOrderStatus.DELIVERED) {
+                Product linkedProduct = order.getProduct();
+                if (linkedProduct == null) {
+                    throw new RuntimeException("Validation Error: Cannot update stock. This Purchase Order is missing a linked product (likely created before the material-linking update). Please create a new Purchase Order.");
+                }
+                if (order.getQuantity() != null) {
+                    Integer currentStock = linkedProduct.getStockQuantity();
+                    if (currentStock == null) currentStock = 0;
+                    linkedProduct.setStockQuantity(currentStock + order.getQuantity());
+                    productRepository.save(linkedProduct);
+                }
+            }
+
+            // If transitioning AWAY from DELIVERED (e.g. rollback to PENDING), decrement stock
+            if (oldStatus == PurchaseOrderStatus.DELIVERED && newStatus != PurchaseOrderStatus.DELIVERED) {
+                Product linkedProduct = order.getProduct();
+                if (linkedProduct == null) {
+                    throw new RuntimeException("Validation Error: Cannot update stock. This Purchase Order is missing a linked product.");
+                }
+                if (order.getQuantity() != null) {
+                    Integer currentStock = linkedProduct.getStockQuantity();
+                    if (currentStock == null) currentStock = 0;
+                    linkedProduct.setStockQuantity(Math.max(0, currentStock - order.getQuantity()));
+                    productRepository.save(linkedProduct);
+                }
+            }
+
+            order.setStatus(newStatus);
             PurchaseOrder updatedOrder = purchaseOrderRepository.save(order);
             return mapToPurchaseOrderResponseDTO(updatedOrder);
         } catch (IllegalArgumentException e) {
@@ -156,6 +187,13 @@ public class SupplierService {
                 .orElseThrow(
                         () -> new RuntimeException("Purchase Order not found with id: " + dto.getPurchaseOrderId()));
 
+        if (order.getStatus() == PurchaseOrderStatus.DELIVERED) {
+            throw new RuntimeException("Validation Error: This Purchase Order has already been delivered. You cannot log additional logic against it safely.");
+        }
+        if (order.getStatus() == PurchaseOrderStatus.CANCELLED) {
+            throw new RuntimeException("Validation Error: This Purchase Order is cancelled.");
+        }
+
         MaterialIntake intake = new MaterialIntake(
                 order,
                 dto.getArrivalDate() != null ? dto.getArrivalDate() : LocalDate.now(),
@@ -166,12 +204,14 @@ public class SupplierService {
 
         // Update Product Stock using the direct FK link on the Purchase Order
         Product linkedProduct = order.getProduct();
-        if (linkedProduct != null) {
-            Integer currentStock = linkedProduct.getStockQuantity();
-            if (currentStock == null) currentStock = 0;
-            linkedProduct.setStockQuantity(currentStock + dto.getQuantityReceived());
-            productRepository.save(linkedProduct);
+        if (linkedProduct == null) {
+             throw new RuntimeException("Validation Error: Cannot update stock because this Purchase Order has no linked Product. Please delete this old PO and create a new one!");
         }
+        
+        Integer currentStock = linkedProduct.getStockQuantity();
+        if (currentStock == null) currentStock = 0;
+        linkedProduct.setStockQuantity(currentStock + dto.getQuantityReceived());
+        productRepository.save(linkedProduct);
 
         // Mark the Purchase Order as DELIVERED
         order.setStatus(PurchaseOrderStatus.DELIVERED);

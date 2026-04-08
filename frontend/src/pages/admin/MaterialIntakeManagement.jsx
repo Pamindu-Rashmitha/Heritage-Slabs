@@ -37,7 +37,8 @@ const MaterialIntakeManagement = () => {
     };
 
     const handleOpenAddModal = () => {
-        setFormData({ purchaseOrderId: selectedOrderId || (orders.length > 0 ? orders[0].id : ''), arrivalDate: getLocalDateString(), quantityReceived: '', conditionNotes: '' });
+        const pendingOrders = orders.filter(o => o.status === 'PENDING');
+        setFormData({ purchaseOrderId: selectedOrderId || (pendingOrders.length > 0 ? pendingOrders[0].id : ''), arrivalDate: getLocalDateString(), quantityReceived: '', conditionNotes: '' });
         setIsModalOpen(true);
     };
 
@@ -64,7 +65,11 @@ const MaterialIntakeManagement = () => {
             else { setSelectedOrderId(formData.purchaseOrderId); }
             setIsModalOpen(false);
             await loadOrders();
-        } catch (err) { showErrorMsg(err.response?.data || 'Failed to log intake.'); }
+        } catch (err) { 
+            const errorData = err.response?.data;
+            const message = typeof errorData === 'object' ? (errorData.message || 'Failed to log intake.') : (errorData || 'Failed to log intake.');
+            showErrorMsg(message); 
+        }
         finally { setIsSubmitting(false); }
     };
 

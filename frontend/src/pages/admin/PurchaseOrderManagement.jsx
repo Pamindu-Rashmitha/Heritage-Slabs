@@ -37,7 +37,16 @@ const PurchaseOrderManagement = () => {
     };
 
     const handleOpenAddModal = () => {
-        setFormData({ supplierId: suppliers.length > 0 ? suppliers[0].id : '', productId: products.length > 0 ? products[0].id : '', orderDate: getLocalDateString(), expectedDelivery: '', quantity: '' });
+        const initialSupplierId = suppliers.length > 0 ? suppliers[0].id : '';
+        let initialProductId = products.length > 0 ? products[0].id : '';
+        
+        if (initialSupplierId) {
+            const selectedSupplier = suppliers.find(s => s.id === initialSupplierId);
+            const matchingProduct = products.find(p => p.name.trim().toLowerCase() === selectedSupplier?.suppliedMaterial?.trim().toLowerCase());
+            if (matchingProduct) initialProductId = matchingProduct.id;
+        }
+
+        setFormData({ supplierId: initialSupplierId, productId: initialProductId, orderDate: getLocalDateString(), expectedDelivery: '', quantity: '' });
         setIsModalOpen(true);
     };
 
@@ -52,6 +61,14 @@ const PurchaseOrderManagement = () => {
         const { name, value } = e.target; 
         if (name === 'quantity') {
             setFormData({ ...formData, quantity: value.replace(/\D/g, '') });
+        } else if (name === 'supplierId') {
+            const selectedSupplier = suppliers.find(s => s.id === parseInt(value, 10));
+            if (selectedSupplier) {
+                const matchingProduct = products.find(p => p.name.trim().toLowerCase() === selectedSupplier.suppliedMaterial?.trim().toLowerCase());
+                setFormData({ ...formData, supplierId: value, productId: matchingProduct ? matchingProduct.id : '' });
+            } else {
+                setFormData({ ...formData, supplierId: value });
+            }
         } else {
             setFormData({ ...formData, [name]: value }); 
         }
