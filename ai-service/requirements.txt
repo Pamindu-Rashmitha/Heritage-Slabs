@@ -9,5 +9,6 @@ numpy
 scikit-learn
 pandas
 joblib
+groq
 replicate
 google-cloud-aiplatform

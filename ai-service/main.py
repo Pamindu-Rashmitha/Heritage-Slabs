@@ -8,6 +8,7 @@ from PIL import Image
 import io
 import os
 import base64
+import time
 from dotenv import load_dotenv
 import joblib
 import numpy as np
@@ -19,7 +20,8 @@ from vertexai.preview.vision_models import ImageGenerationModel, Image as Vertex
 load_dotenv()
 
 # Configure Gemini for vision/text tasks
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+VISION_MODEL = genai.GenerativeModel("gemini-2.5-flash")
 
 app = FastAPI(title="BuildVision AI Visualizer")
 
@@ -30,10 +32,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Setup Models
-# Vision Model: Gemini for describing images and generating prompts
-vision_model = genai.GenerativeModel('gemini-2.5-flash') 
 
 # Image Generation Model: Vertex AI Imagen
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -53,6 +51,22 @@ else:
     print("Vertex AI not configured. Set GOOGLE_CLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS in .env")
 
 
+def pil_to_base64(img: Image.Image, max_size: int = 1024) -> str:
+    """Convert PIL image to base64, resizing if too large for API limits."""
+    # Convert RGBA to RGB
+    if img.mode == "RGBA":
+        background = Image.new("RGB", img.size, (255, 255, 255))
+        background.paste(img, mask=img.split()[3])
+        img = background
+    elif img.mode != "RGB":
+        img = img.convert("RGB")
+    # Resize to keep within token limits
+    img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+    buffer = io.BytesIO()
+    img.save(buffer, format="JPEG", quality=85)
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
 @app.post("/genai-visualize")
 async def genai_visualize(
     room_image: UploadFile = File(...),
@@ -60,9 +74,8 @@ async def genai_visualize(
     product_name: str = Form(default="selected granite")
 ):
     """
-    AI Room Visualizer — Strategy: Option 1 + Option 3
-    1. Hyper-specific Gemini Vision analysis with the product name baked into the prompt.
-    2. Imagen generation from the ultra-detailed prompt.
+    1. Gemini Vision (2.5 Flash) for image analysis & prompt generation.
+    2. Vertex AI Imagen for image generation from the prompt.
     """
     try:
         # Read and process images
@@ -71,6 +84,10 @@ async def genai_visualize(
 
         img_room = Image.open(io.BytesIO(room_bytes))
         img_product = Image.open(io.BytesIO(product_bytes))
+
+        # Convert images to base64 for Groq API
+        room_b64 = pil_to_base64(img_room)
+        product_b64 = pil_to_base64(img_product)
 
         analysis_prompt = f"""
         You are a professional interior design rendering AI and material science expert.
@@ -114,8 +131,25 @@ async def genai_visualize(
         """
 
         # Send both images to Gemini for deep analysis
-        response = vision_model.generate_content([analysis_prompt, img_room, img_product])
-        generated_prompt = response.text.strip()
+        generated_prompt = None
+        for attempt in range(3):
+            try:
+                response = VISION_MODEL.generate_content([
+                    analysis_prompt,
+                    {"mime_type": "image/jpeg", "data": room_b64},
+                    {"mime_type": "image/jpeg", "data": product_b64}
+                ])
+                generated_prompt = response.text.strip()
+                break
+            except Exception as retry_err:
+                if "429" in str(retry_err) and attempt < 2:
+                    wait_time = (attempt + 1) * 15
+                    print(f"[Rate limited] Retrying in {wait_time}s (attempt {attempt+1}/3)...")
+                    time.sleep(wait_time)
+                else:
+                    raise retry_err
+        if not generated_prompt:
+            raise HTTPException(status_code=429, detail="Rate limit exceeded after retries. Please wait a moment and try again.")
         print(f"[Gemini Prompt Generated]: {generated_prompt[:300]}...")
 
         # Generate image using Vertex AI Imagen
@@ -149,4 +183,3 @@ async def genai_visualize(
     except Exception as e:
         print(f"Visualizer Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
