@@ -49,13 +49,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/cancel").permitAll()
                         .requestMatchers("/api/orders/initiate/**").permitAll()
                         
-                        // --- FIX: Added explicit "/api/products" to catch the root URL ---
+ 
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                         .requestMatchers("/api/products", "/api/products/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/orders", "/api/orders/**").authenticated()
                         .requestMatchers("/api/reviews").authenticated()
                         .requestMatchers("/api/reviews/**").authenticated()
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/vehicles/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/deliveries/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/tickets").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/tickets/*/status").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/tickets/user/**").authenticated()
@@ -71,7 +73,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // --- FIXED CORS ORIGINS (Allowing both Vite ports just to be safe) ---
+        // FIXED CORS ORIGINS (Allowing both Vite ports just to be safe) 
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

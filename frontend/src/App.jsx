@@ -4,6 +4,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Profile from './pages/admin/Profile';
@@ -63,6 +64,7 @@ function App() {
                             <Route path="/" element={<LandingPageWrapper />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
+                            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
                             <Route path="/catalog" element={<ProductCatalog />} />
                             <Route path="/cart" element={<OrderPage />} />

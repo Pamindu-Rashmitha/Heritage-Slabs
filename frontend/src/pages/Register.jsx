@@ -10,11 +10,13 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [acceptedPrivacyPolicy, setAcceptedPrivacyPolicy] = useState(false);
     const [fieldErrors, setFieldErrors] = useState({
         name: '',
         email: '',
         password: '',
         confirmPassword: '',
+        privacy: '',
     });
 
     const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +25,7 @@ export default function Register() {
     const navigate = useNavigate();
 
     const validate = () => {
-        const errors = { name: '', email: '', password: '', confirmPassword: '' };
+        const errors = { name: '', email: '', password: '', confirmPassword: '', privacy: '' };
         let isValid = true;
 
         if (!name.trim()) {
@@ -73,6 +75,11 @@ export default function Register() {
             isValid = false;
         }
 
+        if (!acceptedPrivacyPolicy) {
+            errors.privacy = 'You must accept the Privacy Policy to create an account';
+            isValid = false;
+        }
+
         setFieldErrors(errors);
         return isValid;
     };
@@ -90,7 +97,8 @@ export default function Register() {
             await api.post('/auth/register', {
                 name,
                 email,
-                password
+                password,
+                acceptedPrivacyPolicy: true,
             });
 
             setSuccess('Registration successful! Redirecting to login...');
@@ -198,6 +206,31 @@ export default function Register() {
                             </button>
                         </div>
                         {fieldErrors.confirmPassword && <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.confirmPassword}</p>}
+                    </div>
+
+                    <div className={`rounded-xl border p-4 ${fieldErrors.privacy ? 'border-red-300 bg-red-50/50' : 'border-white/40 bg-white/30'}`}>
+                        <label className="flex items-start gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="mt-1 h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent"
+                                checked={acceptedPrivacyPolicy}
+                                onChange={(e) => {
+                                    setAcceptedPrivacyPolicy(e.target.checked);
+                                    if (e.target.checked) {
+                                        setFieldErrors((prev) => ({ ...prev, privacy: '' }));
+                                    }
+                                }}
+                            />
+                            <span className="text-sm text-gray-700 leading-relaxed">
+                                I have read and agree to the{' '}
+                                <Link to="/privacy-policy" className="font-bold text-accent hover:text-accent-dark underline underline-offset-2">
+                                    Privacy Policy
+                                </Link>
+                                , including how my details, delivery information, profile photo, and room photos used in
+                                the visualizer are handled.
+                            </span>
+                        </label>
+                        {fieldErrors.privacy && <p className="mt-2 text-xs text-red-500 font-medium pl-7">{fieldErrors.privacy}</p>}
                     </div>
 
                     <button

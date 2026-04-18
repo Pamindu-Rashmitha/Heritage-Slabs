@@ -1,8 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
 import google.generativeai as genai
 from PIL import Image
 import io
@@ -10,8 +7,7 @@ import os
 import base64
 import time
 from dotenv import load_dotenv
-import joblib
-import numpy as np
+
 
 # Vertex AI imports for Imagen
 import google.cloud.aiplatform as aiplatform
@@ -85,7 +81,7 @@ async def genai_visualize(
         img_room = Image.open(io.BytesIO(room_bytes))
         img_product = Image.open(io.BytesIO(product_bytes))
 
-        # Convert images to base64 for Groq API
+        # Convert images to base64 for Gemini API
         room_b64 = pil_to_base64(img_room)
         product_b64 = pil_to_base64(img_product)
 

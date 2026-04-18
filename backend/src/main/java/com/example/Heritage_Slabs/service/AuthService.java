@@ -33,6 +33,10 @@ public class AuthService {
     }
 
     public String register(RegisterRequest request) {
+        if (request.getAcceptedPrivacyPolicy() == null || !request.getAcceptedPrivacyPolicy()) {
+            return "Error: You must accept the Privacy Policy to register.";
+        }
+
         Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
         if (existingUser.isPresent()) {
             return "Error: Email is already taken!";
