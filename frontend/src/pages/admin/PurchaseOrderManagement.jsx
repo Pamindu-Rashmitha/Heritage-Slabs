@@ -31,33 +31,79 @@ const PurchaseOrderManagement = () => {
         finally { setLoading(false); }
     };
 
+    const getLocalDateString = () => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
     const handleOpenAddModal = () => {
-        setFormData({ supplierId: suppliers.length > 0 ? suppliers[0].id : '', productId: products.length > 0 ? products[0].id : '', orderDate: new Date().toISOString().split('T')[0], expectedDelivery: '', quantity: '' });
+        const initialSupplierId = suppliers.length > 0 ? suppliers[0].id : '';
+        let initialProductId = products.length > 0 ? products[0].id : '';
+        
+        if (initialSupplierId) {
+            const selectedSupplier = suppliers.find(s => s.id === initialSupplierId);
+            const matchingProduct = products.find(p => p.name.trim().toLowerCase() === selectedSupplier?.suppliedMaterial?.trim().toLowerCase());
+            if (matchingProduct) initialProductId = matchingProduct.id;
+        }
+
+        setFormData({ supplierId: initialSupplierId, productId: initialProductId, orderDate: getLocalDateString(), expectedDelivery: '', quantity: '' });
         setIsModalOpen(true);
     };
 
     const handleOpenStatusModal = (order) => { setSelectedOrder(order); setNewStatus(order.status); setIsStatusModalOpen(true); };
-    const handleInputChange = (e) => { const { name, value } = e.target; setFormData({ ...formData, [name]: value }); };
+
+    const showErrorMsg = (msg) => {
+        setError(msg);
+        setTimeout(() => setError(''), 5000);
+    };
+
+    const handleInputChange = (e) => { 
+        const { name, value } = e.target; 
+        if (name === 'quantity') {
+            setFormData({ ...formData, quantity: value.replace(/\D/g, '') });
+        } else if (name === 'supplierId') {
+            const selectedSupplier = suppliers.find(s => s.id === parseInt(value, 10));
+            if (selectedSupplier) {
+                const matchingProduct = products.find(p => p.name.trim().toLowerCase() === selectedSupplier.suppliedMaterial?.trim().toLowerCase());
+                setFormData({ ...formData, supplierId: value, productId: matchingProduct ? matchingProduct.id : '' });
+            } else {
+                setFormData({ ...formData, supplierId: value });
+            }
+        } else {
+            setFormData({ ...formData, [name]: value }); 
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault(); setIsSubmitting(true); setError('');
-        if (new Date(formData.expectedDelivery) < new Date(formData.orderDate)) { setError('Expected delivery date cannot be before the order date.'); setIsSubmitting(false); return; }
+        if (new Date(formData.expectedDelivery) < new Date(formData.orderDate)) { showErrorMsg('Expected delivery date cannot be before the order date.'); setIsSubmitting(false); return; }
         try {
             const payload = { ...formData, supplierId: parseInt(formData.supplierId, 10), productId: parseInt(formData.productId, 10), quantity: parseInt(formData.quantity, 10) };
             const newOrder = await supplierService.createPurchaseOrder(payload);
             setOrders([...orders, newOrder]); setIsModalOpen(false);
         } catch (err) {
             const errData = err.response?.data;
-            if (typeof errData === 'object' && errData !== null) { alert(Object.values(errData).join('\n') || 'Failed to save.'); }
-            else { alert(errData || 'Failed to save.'); }
+            if (typeof errData === 'object' && errData !== null) { showErrorMsg(Object.values(errData).join('\n') || 'Failed to save.'); }
+            else { showErrorMsg(errData || 'Failed to save.'); }
         } finally { setIsSubmitting(false); }
     };
 
     const handleStatusSubmit = async (e) => {
         e.preventDefault(); setIsSubmitting(true);
         try { const updated = await supplierService.updatePurchaseOrderStatus(selectedOrder.id, newStatus); setOrders(orders.map(o => o.id === updated.id ? updated : o)); setIsStatusModalOpen(false); }
-        catch (err) { alert('Failed to update status.'); }
+        catch (err) { showErrorMsg('Failed to update status.'); }
         finally { setIsSubmitting(false); }
+    };
+
+    const handleDeleteOrder = async (id) => {
+        if (window.confirm("Are you sure you want to delete this purchase order? This action cannot be undone.")) {
+            try {
+                await supplierService.deletePurchaseOrder(id);
+                setOrders(orders.filter(o => o.id !== id));
+            } catch (err) {
+                showErrorMsg("Failed to delete. It might be linked to existing material intakes.");
+            }
+        }
     };
 
     const getStatusColor = (status) => {
@@ -89,7 +135,17 @@ const PurchaseOrderManagement = () => {
                         </button>
                     </div>
 
-                    {error && <div className="glass-card bg-red-50/50 border-red-200/50 text-red-600 p-3 rounded-xl mb-4 font-semibold">{error}</div>}
+                    {error && (
+                        <div className="fixed top-6 right-6 z-[100] max-w-sm w-full animate-fade-in shadow-2xl">
+                            <div className="flex items-start gap-3 glass-card bg-red-50/95 backdrop-blur-md border-red-300 text-red-700 p-4 rounded-2xl">
+                                <X className="w-5 h-5 shrink-0 mt-0.5 text-red-500" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium whitespace-pre-wrap">{error}</p>
+                                </div>
+                                <button onClick={() => setError('')} className="p-1 hover:bg-red-100 rounded-lg transition-colors"><X size={16}/></button>
+                            </div>
+                        </div>
+                    )}
 
                     {loading ? (
                         <div className="py-10 text-center text-gray-500">
@@ -121,9 +177,12 @@ const PurchaseOrderManagement = () => {
                                                 </td>
                                                 <td className="px-6 py-3 text-sm font-bold text-gray-700">{order.quantity}</td>
                                                 <td className="px-6 py-3"><span className={`glass-badge ${getStatusColor(order.status)}`}>{order.status.replace('_', ' ')}</span></td>
-                                                <td className="px-6 py-3 text-center">
+                                                <td className="px-6 py-3 text-center space-x-2">
                                                     <button onClick={() => handleOpenStatusModal(order)} className="glass-btn px-3 py-1.5 rounded-lg text-accent font-semibold text-xs inline-flex items-center gap-1">
                                                         <RefreshCw size={14} /> Update
+                                                    </button>
+                                                    <button onClick={() => handleDeleteOrder(order.id)} className="glass-btn px-3 py-1.5 rounded-lg text-red-500 font-semibold text-xs inline-flex items-center gap-1 border-red-200/50">
+                                                        <X size={14} /> Delete
                                                     </button>
                                                 </td>
                                             </tr>
@@ -162,11 +221,11 @@ const PurchaseOrderManagement = () => {
                                     </div>
                                     <div>
                                         <label className="block mb-1 text-sm font-semibold text-gray-600">Order Date</label>
-                                        <input type="date" name="orderDate" required value={formData.orderDate} onChange={handleInputChange} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
+                                        <input type="date" name="orderDate" required value={formData.orderDate} disabled className="w-full px-4 py-3 glass-input rounded-xl text-gray-500 font-medium bg-white/40 cursor-not-allowed" />
                                     </div>
                                     <div>
                                         <label className="block mb-1 text-sm font-semibold text-gray-600">Expected Delivery</label>
-                                        <input type="date" name="expectedDelivery" required value={formData.expectedDelivery} onChange={handleInputChange} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
+                                        <input type="date" name="expectedDelivery" required value={formData.expectedDelivery} onChange={handleInputChange} min={formData.orderDate || new Date().toISOString().split('T')[0]} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
                                     </div>
                                     <div>
                                         <label className="block mb-1 text-sm font-semibold text-gray-600">Material (Product)</label>
@@ -178,7 +237,7 @@ const PurchaseOrderManagement = () => {
                                     </div>
                                     <div>
                                         <label className="block mb-1 text-sm font-semibold text-gray-600">Quantity</label>
-                                        <input type="number" name="quantity" required value={formData.quantity} onChange={handleInputChange} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
+                                        <input type="number" name="quantity" min="10" step="1" required value={formData.quantity} onChange={handleInputChange} onKeyDown={(e) => { if (!/^[0-9]$/.test(e.key) && !['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete', 'Tab'].includes(e.key)) e.preventDefault(); }} className="w-full px-4 py-3 glass-input rounded-xl text-gray-800 font-medium" />
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-white/30">

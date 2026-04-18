@@ -41,6 +41,10 @@ const supplierService = {
         const response = await api.put(`/suppliers/purchase-orders/${id}/status?status=${status}`);
         return response.data;
     },
+    deletePurchaseOrder: async (id) => {
+        const response = await api.delete(`/suppliers/purchase-orders/${id}`);
+        return response.data;
+    },
 
     // --- Material Intake Methods ---
     logMaterialIntake: async (intakeData) => {
