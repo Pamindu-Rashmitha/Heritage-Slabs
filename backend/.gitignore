@@ -32,6 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-backend/src/main/resources/application.properties
+src/main/resources/application.properties
 ai-service/.env
 ai-service/__pycache__/main.cpython-311.pyc

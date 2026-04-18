@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class SupplierService {
 
     @Autowired
@@ -41,8 +42,8 @@ public class SupplierService {
     // --- Supplier Methods ---
 
     public SupplierResponseDTO createSupplier(SupplierRequestDTO dto) {
-        Supplier supplier = new Supplier(dto.getName(), dto.getContactInfo(), dto.getSuppliedMaterial(),
-                dto.getRating());
+        Supplier supplier = new Supplier(dto.getName(), dto.getSuppliedMaterial(),
+                dto.getRating(), dto.getEmail(), dto.getPhone());
         Supplier savedSupplier = supplierRepository.save(supplier);
         return mapToSupplierResponseDTO(savedSupplier);
     }
@@ -64,9 +65,10 @@ public class SupplierService {
                 .orElseThrow(() -> new RuntimeException("Supplier not found with id: " + id));
 
         supplier.setName(dto.getName());
-        supplier.setContactInfo(dto.getContactInfo());
         supplier.setSuppliedMaterial(dto.getSuppliedMaterial());
         supplier.setRating(dto.getRating());
+        supplier.setEmail(dto.getEmail());
+        supplier.setPhone(dto.getPhone());
 
         Supplier updatedSupplier = supplierRepository.save(supplier);
         return mapToSupplierResponseDTO(updatedSupplier);
@@ -125,18 +127,56 @@ public class SupplierService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public PurchaseOrderResponseDTO updatePurchaseOrderStatus(Long id, String statusString) {
         PurchaseOrder order = purchaseOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Purchase Order not found with id: " + id));
 
         try {
-            PurchaseOrderStatus status = PurchaseOrderStatus.valueOf(statusString.toUpperCase());
-            order.setStatus(status);
+            PurchaseOrderStatus newStatus = PurchaseOrderStatus.valueOf(statusString.toUpperCase());
+            PurchaseOrderStatus oldStatus = order.getStatus();
+
+            // If transitioning TO DELIVERED, increment stock
+            if (newStatus == PurchaseOrderStatus.DELIVERED && oldStatus != PurchaseOrderStatus.DELIVERED) {
+                Product linkedProduct = order.getProduct();
+                if (linkedProduct == null) {
+                    throw new RuntimeException("Validation Error: Cannot update stock. This Purchase Order is missing a linked product (likely created before the material-linking update). Please create a new Purchase Order.");
+                }
+                if (order.getQuantity() != null) {
+                    Integer currentStock = linkedProduct.getStockQuantity();
+                    if (currentStock == null) currentStock = 0;
+                    linkedProduct.setStockQuantity(currentStock + order.getQuantity());
+                    productRepository.save(linkedProduct);
+                }
+            }
+
+            // If transitioning AWAY from DELIVERED (e.g. rollback to PENDING), decrement stock
+            if (oldStatus == PurchaseOrderStatus.DELIVERED && newStatus != PurchaseOrderStatus.DELIVERED) {
+                Product linkedProduct = order.getProduct();
+                if (linkedProduct == null) {
+                    throw new RuntimeException("Validation Error: Cannot update stock. This Purchase Order is missing a linked product.");
+                }
+                if (order.getQuantity() != null) {
+                    Integer currentStock = linkedProduct.getStockQuantity();
+                    if (currentStock == null) currentStock = 0;
+                    linkedProduct.setStockQuantity(Math.max(0, currentStock - order.getQuantity()));
+                    productRepository.save(linkedProduct);
+                }
+            }
+
+            order.setStatus(newStatus);
             PurchaseOrder updatedOrder = purchaseOrderRepository.save(order);
             return mapToPurchaseOrderResponseDTO(updatedOrder);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Invalid status: " + statusString);
         }
+    }
+
+    public void deletePurchaseOrder(Long id) {
+        if (!purchaseOrderRepository.existsById(id)) {
+            throw new RuntimeException("Purchase Order not found with id: " + id);
+        }
+        purchaseOrderRepository.deleteById(id);
     }
 
     // --- Material Intake Methods ---
@@ -147,9 +187,16 @@ public class SupplierService {
                 .orElseThrow(
                         () -> new RuntimeException("Purchase Order not found with id: " + dto.getPurchaseOrderId()));
 
+        if (order.getStatus() == PurchaseOrderStatus.DELIVERED) {
+            throw new RuntimeException("Validation Error: This Purchase Order has already been delivered. You cannot log additional logic against it safely.");
+        }
+        if (order.getStatus() == PurchaseOrderStatus.CANCELLED) {
+            throw new RuntimeException("Validation Error: This Purchase Order is cancelled.");
+        }
+
         MaterialIntake intake = new MaterialIntake(
                 order,
-                LocalDate.now(),
+                dto.getArrivalDate() != null ? dto.getArrivalDate() : LocalDate.now(),
                 dto.getQuantityReceived(),
                 dto.getConditionNotes());
 
@@ -157,10 +204,14 @@ public class SupplierService {
 
         // Update Product Stock using the direct FK link on the Purchase Order
         Product linkedProduct = order.getProduct();
-        if (linkedProduct != null) {
-            linkedProduct.setStockQuantity(linkedProduct.getStockQuantity() + dto.getQuantityReceived());
-            productRepository.save(linkedProduct);
+        if (linkedProduct == null) {
+             throw new RuntimeException("Validation Error: Cannot update stock because this Purchase Order has no linked Product. Please delete this old PO and create a new one!");
         }
+        
+        Integer currentStock = linkedProduct.getStockQuantity();
+        if (currentStock == null) currentStock = 0;
+        linkedProduct.setStockQuantity(currentStock + dto.getQuantityReceived());
+        productRepository.save(linkedProduct);
 
         // Mark the Purchase Order as DELIVERED
         order.setStatus(PurchaseOrderStatus.DELIVERED);
@@ -181,9 +232,10 @@ public class SupplierService {
         SupplierResponseDTO dto = new SupplierResponseDTO();
         dto.setId(supplier.getId());
         dto.setName(supplier.getName());
-        dto.setContactInfo(supplier.getContactInfo());
         dto.setSuppliedMaterial(supplier.getSuppliedMaterial());
         dto.setRating(supplier.getRating());
+        dto.setEmail(supplier.getEmail());
+        dto.setPhone(supplier.getPhone());
         return dto;
     }
 

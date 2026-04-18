@@ -14,22 +14,26 @@ public class Supplier {
     private String name;
 
     @Column(nullable = false)
-    private String contactInfo;
-
-    @Column(nullable = false)
     private String suppliedMaterial; // Material type supplied by this supplier
 
     private Double rating; // Supplier rating
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String phone;
 
     // --- Constructors ---
     public Supplier() {
     }
 
-    public Supplier(String name, String contactInfo, String suppliedMaterial, Double rating) {
+    public Supplier(String name, String suppliedMaterial, Double rating, String email, String phone) {
         this.name = name;
-        this.contactInfo = contactInfo;
         this.suppliedMaterial = suppliedMaterial;
         this.rating = rating;
+        this.email = email;
+        this.phone = phone;
     }
 
     // --- Getters and Setters ---
@@ -49,14 +53,6 @@ public class Supplier {
         this.name = name;
     }
 
-    public String getContactInfo() {
-        return contactInfo;
-    }
-
-    public void setContactInfo(String contactInfo) {
-        this.contactInfo = contactInfo;
-    }
-
     public String getSuppliedMaterial() {
         return suppliedMaterial;
     }
@@ -71,5 +67,21 @@ public class Supplier {
 
     public void setRating(Double rating) {
         this.rating = rating;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }
