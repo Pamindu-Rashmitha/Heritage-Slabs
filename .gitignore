@@ -22,8 +22,8 @@ backend/.env
 
 .claude/
 
-.idea/
-.vscode/
+.idea
+.vscode
 .DS_Store
 .env
 .env.local
