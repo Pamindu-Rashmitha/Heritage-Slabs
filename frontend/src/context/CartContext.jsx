@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { AuthContext } from './AuthContext';
 
 const CartContext = createContext(null);
 
@@ -12,7 +13,33 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-    const [cartItems, setCartItems] = useState([]);
+    const { user } = useContext(AuthContext);
+    const cartStorageKey = useMemo(
+        () => `cart_${(user?.email || 'guest').toLowerCase()}`,
+        [user?.email]
+    );
+
+    const [cartItems, setCartItems] = useState(() => {
+        try {
+            const saved = localStorage.getItem('cart_guest');
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(cartStorageKey);
+            setCartItems(saved ? JSON.parse(saved) : []);
+        } catch {
+            setCartItems([]);
+        }
+    }, [cartStorageKey]);
+
+    useEffect(() => {
+        localStorage.setItem(cartStorageKey, JSON.stringify(cartItems));
+    }, [cartItems, cartStorageKey]);
 
     const addToCart = (product, quantity = 1) => {
         setCartItems((prev) => {
