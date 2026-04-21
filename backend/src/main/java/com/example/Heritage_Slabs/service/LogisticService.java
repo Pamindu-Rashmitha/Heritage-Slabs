@@ -32,6 +32,9 @@ public class LogisticService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     public List<Vehicle> getAllVehicles() {
         return vehicleRepository.findAll();
     }
@@ -133,7 +136,9 @@ public class LogisticService {
         orderRepository.save(order);
 
         // 6. Save and return the delivery
-        return deliveryRepository.save(delivery);
+        Delivery saved = deliveryRepository.save(delivery);
+        emailService.sendDeliveryStatusUpdateEmail(order, saved, DeliveryStatus.SHIPPED);
+        return saved;
     }
 
     @Transactional
@@ -141,6 +146,7 @@ public class LogisticService {
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new RuntimeException("Delivery not found with id: " + deliveryId));
 
+        DeliveryStatus previous = delivery.getStatus();
         delivery.setStatus(status);
 
         // If delivered, mark vehicle as available again
@@ -156,6 +162,14 @@ public class LogisticService {
             orderRepository.save(order);
         }
 
-        return deliveryRepository.save(delivery);
+        Delivery saved = deliveryRepository.save(delivery);
+
+        if (previous != status) {
+            Order orderForEmail = orderRepository.findById(delivery.getOrderId())
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+            emailService.sendDeliveryStatusUpdateEmail(orderForEmail, saved, status);
+        }
+
+        return saved;
     }
 }

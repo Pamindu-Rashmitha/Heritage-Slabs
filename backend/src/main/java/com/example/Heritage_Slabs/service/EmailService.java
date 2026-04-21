@@ -1,5 +1,7 @@
 package com.example.Heritage_Slabs.service;
 
+import com.example.Heritage_Slabs.model.Delivery;
+import com.example.Heritage_Slabs.model.DeliveryStatus;
 import com.example.Heritage_Slabs.model.Order;
 import com.example.Heritage_Slabs.model.OrderItem;
 import com.example.Heritage_Slabs.repository.OrderItemRepository;
@@ -172,6 +174,149 @@ public class EmailService {
         } catch (MessagingException e) {
             // Log but don't crash — email failure shouldn't block the order flow
             System.err.println("[EmailService] Failed to send order confirmation email: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Notifies the customer when a delivery status changes (shipped, delivered, etc.).
+     */
+    @Async
+    public void sendDeliveryStatusUpdateEmail(Order order, Delivery delivery, DeliveryStatus status) {
+        try {
+            String toEmail = order.getContactEmail();
+            String customerName = order.getUser_id() != null ? order.getUser_id().getName() : "Customer";
+
+            String headline;
+            String leadParagraph;
+            String accentColor;
+            String bannerBg;
+            String subjectSuffix;
+
+            switch (status) {
+                case PENDING -> {
+                    headline = "Your delivery is being prepared";
+                    leadParagraph = "We've scheduled your shipment and will notify you again when it's on the way.";
+                    accentColor = "#92400e";
+                    bannerBg = "#fffbeb";
+                    subjectSuffix = "Delivery update – preparing your order";
+                }
+                case SHIPPED -> {
+                    headline = "Your order is on the way";
+                    leadParagraph = "Your Heritage Slabs delivery has been shipped and is heading to you.";
+                    accentColor = "#1e40af";
+                    bannerBg = "#eff6ff";
+                    subjectSuffix = "Your delivery is being shipped";
+                }
+                case DELIVERED -> {
+                    headline = "Your order has been delivered";
+                    leadParagraph = "Your delivery has been completed. We hope you enjoy your stone from Heritage Slabs.";
+                    accentColor = "#065f46";
+                    bannerBg = "#ecfdf5";
+                    subjectSuffix = "Delivery complete";
+                }
+                default -> {
+                    headline = "Delivery update";
+                    leadParagraph = "There is an update to your delivery.";
+                    accentColor = "#374151";
+                    bannerBg = "#f3f4f6";
+                    subjectSuffix = "Delivery update";
+                }
+            }
+
+            String driverLine = (delivery.getDriverName() != null && !delivery.getDriverName().isBlank())
+                    ? delivery.getDriverName()
+                    : "Assigned driver";
+            String etaLine = (delivery.getEstimatedTime() != null && !delivery.getEstimatedTime().isBlank())
+                    ? delivery.getEstimatedTime()
+                    : "We'll share timing as soon as possible";
+            String vehicleLine = "";
+            if (delivery.getVehicle() != null) {
+                String plate = delivery.getVehicle().getLicensePlate() != null
+                        ? delivery.getVehicle().getLicensePlate()
+                        : "";
+                String vType = delivery.getVehicle().getType() != null
+                        ? delivery.getVehicle().getType()
+                        : "";
+                if (!plate.isEmpty() || !vType.isEmpty()) {
+                    vehicleLine = String.format(
+                            "<tr><td style=\"padding:4px 0;font-size:12px;color:#9ca3af;font-weight:600;\">Vehicle</td>"
+                                    + "<td style=\"padding:4px 0;font-size:13px;color:#374151;font-weight:600;\">%s %s</td></tr>",
+                            vType.isEmpty() ? "" : vType + " · ",
+                            plate);
+                }
+            }
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("Heritage Slabs — " + subjectSuffix + " · #HS-" + String.format("%05d", order.getId()));
+
+            String html = String.format("""
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"></head>
+                <body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+                  <div style="max-width:640px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+                    <div style="background:linear-gradient(135deg,#1e3a8a 0%%,#2563eb 100%%);padding:40px 40px 32px;text-align:center;">
+                      <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Heritage Slabs</h1>
+                      <p style="margin:8px 0 0;color:#bfdbfe;font-size:14px;font-weight:500;letter-spacing:2px;text-transform:uppercase;">Delivery</p>
+                    </div>
+                    <div style="background:%s;border-bottom:2px solid %s;padding:20px 40px;text-align:center;">
+                      <p style="margin:0;color:%s;font-size:18px;font-weight:700;">%s</p>
+                    </div>
+                    <div style="padding:32px 40px 0;">
+                      <p style="margin:0;color:#374151;font-size:16px;">Dear <strong>%s</strong>,</p>
+                      <p style="color:#6b7280;font-size:14px;line-height:1.6;margin:12px 0 0;">%s</p>
+                    </div>
+                    <div style="margin:24px 40px;background:#f8faff;border:1px solid #dbeafe;border-radius:12px;padding:20px 24px;">
+                      <p style="margin:0 0 14px;font-size:13px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:1px;">Shipment details</p>
+                      <table width="100%%">
+                        <tr>
+                          <td style="width:140px;padding:4px 0;font-size:12px;color:#9ca3af;font-weight:600;">Order</td>
+                          <td style="padding:4px 0;font-size:13px;color:#374151;font-weight:700;font-family:monospace;">#HS-%s</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:4px 0;font-size:12px;color:#9ca3af;font-weight:600;">Status</td>
+                          <td style="padding:4px 0;font-size:13px;color:#374151;font-weight:700;">%s</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:4px 0;font-size:12px;color:#9ca3af;font-weight:600;">Driver</td>
+                          <td style="padding:4px 0;font-size:13px;color:#374151;font-weight:600;">%s</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:4px 0;font-size:12px;color:#9ca3af;font-weight:600;vertical-align:top;">Est. timing</td>
+                          <td style="padding:4px 0;font-size:13px;color:#374151;">%s</td>
+                        </tr>
+                        %s
+                      </table>
+                    </div>
+                    <div style="background:#f3f4f6;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">
+                      <p style="margin:0;font-size:12px;color:#9ca3af;">Questions? <a href="mailto:vijithagranite@gmail.com" style="color:#2563eb;">support@heritageslabs.lk</a></p>
+                      <p style="margin:8px 0 0;font-size:11px;color:#d1d5db;">© 2026 Heritage Slabs</p>
+                    </div>
+                  </div>
+                </body>
+                </html>
+                """,
+                    bannerBg,
+                    accentColor,
+                    accentColor,
+                    headline,
+                    customerName,
+                    leadParagraph,
+                    String.format("%05d", order.getId()),
+                    status.name(),
+                    driverLine,
+                    etaLine,
+                    vehicleLine
+            );
+
+            helper.setText(html, true);
+            mailSender.send(message);
+
+        } catch (MessagingException e) {
+            System.err.println("[EmailService] Failed to send delivery status email: " + e.getMessage());
         }
     }
 }
