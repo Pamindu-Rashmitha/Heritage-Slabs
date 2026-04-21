@@ -29,6 +29,7 @@ public class UserController {
     public ResponseEntity<String> uploadAvatar(@PathVariable String email, @RequestParam("file") MultipartFile file) {
         try {
             String avatarUrl = userService.updateAvatar(email, file);
+            // Return just the URL string, not wrapped in quotes
             return ResponseEntity.ok(avatarUrl);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

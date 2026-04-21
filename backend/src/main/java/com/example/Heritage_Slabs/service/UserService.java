@@ -35,31 +35,37 @@ public class UserService {
     }
 
     // Define where to save the images locally
-    private final String UPLOAD_DIR = "uploads/avatars/";
+    private final String UPLOAD_DIR = "./uploads/avatars/";
 
     // Handle the avatar file upload
     public String updateAvatar(String email, MultipartFile file) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Validate file
+        if (file.isEmpty()) {
+            throw new RuntimeException("Please select a file to upload");
+        }
+
+        // Validate file type
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Only image files are allowed");
+        }
+
         try {
-            // 1. Create the directory if it doesn't exist yet
             Path uploadPath = Paths.get(UPLOAD_DIR);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
-            // 2. Generate a unique file name (so two users named "John" don't overwrite "profile.png")
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             Path filePath = uploadPath.resolve(fileName);
 
-            // 3. Save the physical file to the folder
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            // 4. Create the URL link to access this image (assuming Spring Boot runs on 8080)
             String avatarUrl = "http://localhost:8080/avatars/" + fileName;
 
-            // 5. Save that URL string to the MySQL database!
             user.setAvatarUrl(avatarUrl);
             userRepository.save(user);
 
